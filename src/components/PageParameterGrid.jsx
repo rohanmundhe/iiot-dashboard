@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpDown, HelpCircle, Thermometer, Activity, Zap, Cpu, Droplet } from 'lucide-react';
+import { ArrowUpDown, Thermometer, Activity, Droplet } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
 import { METRIC_CONFIGS } from '../hooks/useGcpData';
 
@@ -25,13 +25,9 @@ export function PageParameterGrid({
   });
 
   const getMetricIcon = (metricId) => {
-    switch (metricId) {
-      case 'temperature': return <Thermometer size={16} />;
-      case 'vibration': return <Activity size={16} />;
-      case 'current': return <Zap size={16} />;
-      case 'voltage': return <Cpu size={16} />;
-      default: return <Droplet size={16} />;
-    }
+    if (metricId === 'temperature') return <Thermometer size={16} />;
+    if (metricId === 'vibration')   return <Activity size={16} />;
+    return <Droplet size={16} />;
   };
 
   const handleMachineClick = (machineId) => {

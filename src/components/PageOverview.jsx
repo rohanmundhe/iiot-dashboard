@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, Cpu, Thermometer, Activity, Heart, ShieldAlert } from 'lucide-react';
+import { ChevronRight, Thermometer, Activity, Droplet, Heart, ShieldAlert } from 'lucide-react';
 import AlertsPanel from './AlertsPanel';
 
 export function PageOverview({ 
@@ -201,7 +201,7 @@ export function PageOverview({
                 {/* Mini parameters display */}
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
+                  gridTemplateColumns: '1fr 1fr 1fr',
                   gap: '8px',
                   background: 'rgba(10, 15, 30, 0.4)',
                   padding: '8px',
@@ -209,19 +209,27 @@ export function PageOverview({
                   fontSize: '0.7rem',
                   border: '1px solid rgba(38, 55, 96, 0.2)'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Thermometer size={12} style={{ color: 'var(--color-primary)' }} />
                     <span style={{ color: 'var(--color-text-muted)' }}>Temp:</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: '#fff' }}>
                       {m.temperature}°C
                     </span>
                   </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Droplet size={12} style={{ color: 'var(--color-primary)' }} />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Hum:</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: '#fff' }}>
+                      {m.humidity != null ? `${m.humidity}%` : '--'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Activity size={12} style={{ color: 'var(--color-primary)' }} />
                     <span style={{ color: 'var(--color-text-muted)' }}>Vib:</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: '#fff' }}>
-                      {m.vibration} Mag
+                      {m.vibration}
                     </span>
                   </div>
                 </div>

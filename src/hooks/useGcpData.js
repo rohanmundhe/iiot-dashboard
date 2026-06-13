@@ -2,60 +2,49 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
-// ── Metric configs for simulated industrial machines (Beta, Gamma) ────────────
+// ── Metric configs (real ESP32 sensor ranges from code.c) ─────────────────────
 export const METRIC_CONFIGS = {
-  temperature: { label: 'Temperature', unit: '°C', icon: 'thermometer', optMin: 40, optMax: 70, warnMax: 80, critMax: 95 },
-  vibration:   { label: 'Vibration',   unit: 'Mag', icon: 'activity',    optMin: 0.8, optMax: 2.2, warnMax: 3.5, critMax: 5.0 },
-  current:     { label: 'Current',     unit: 'A',   icon: 'zap',         optMin: 8, optMax: 16, warnMax: 20, critMax: 25 },
-  voltage:     { label: 'Voltage',     unit: 'V',   icon: 'cpu',         optMin: 215, optMax: 235, warnMin: 205, warnMax: 245, critMin: 195, critMax: 255 },
-  coolantFlow: { label: 'Coolant Flow', unit: 'L/min', icon: 'droplet',  optMin: 10, optMax: 14, warnMin: 8, critMin: 5 }
+  temperature: { label: 'Temperature', unit: '°C',  icon: 'thermometer', optMin: 20, optMax: 30, warnMax: 35, critMax: 40 },
+  humidity:    { label: 'Humidity',    unit: '%',   icon: 'droplet',     optMin: 30, optMax: 60, warnMax: 75, critMax: 85 },
+  vibration:   { label: 'Vibration',  unit: 'Mag', icon: 'activity',    optMin: 0,  optMax: 0.01, warnMax: 0.05, critMax: 0.15 }
 };
 
-// ── Metric configs for real ESP32 sensor (Machine Alpha via ThingSpeak) ───────
-// Thresholds match code.c: getTempHealth() and VIBRATION_THRESHOLD constants
-export const THINGSPEAK_METRIC_CONFIGS = {
-  temperature: { label: 'Temperature', unit: '°C', icon: 'thermometer', optMin: 20, optMax: 30, warnMax: 35, critMax: 40 },
-  vibration:   { label: 'Vibration',   unit: 'Mag', icon: 'activity',   optMin: 0, optMax: 0.01, warnMax: 0.05, critMax: 0.15 },
-  humidity:    { label: 'Humidity',    unit: '%',  icon: 'droplet',     optMin: 30, optMax: 60, warnMax: 75, critMax: 85 },
-  current:     { label: 'Current',     unit: 'A',  icon: 'zap',         optMin: 8, optMax: 16, warnMax: 20, critMax: 25 },
-  voltage:     { label: 'Voltage',     unit: 'V',  icon: 'cpu',         optMin: 215, optMax: 235, warnMin: 205, warnMax: 245, critMin: 195, critMax: 255 },
-  coolantFlow: { label: 'Coolant Flow', unit: 'L/min', icon: 'droplet', optMin: 10, optMax: 14, warnMin: 8, critMin: 5 }
-};
+// Same config object re-exported for ThingSpeak machines (kept for back-compat with getMetricConfigs)
+export const THINGSPEAK_METRIC_CONFIGS = METRIC_CONFIGS;
 
-// Returns the right config set based on whether the machine has live ThingSpeak data
-export function getMetricConfigs(machine) {
-  return machine?.source === 'thingspeak' ? THINGSPEAK_METRIC_CONFIGS : METRIC_CONFIGS;
+export function getMetricConfigs() {
+  return METRIC_CONFIGS;
 }
 
 export const MACHINE_METRICS = {
-  machine_alpha: { name: 'Machine Alpha (LAB 1)', desc: 'Primary Rotary Assembly' },
-  machine_beta:  { name: 'Machine Beta (LAB 2)',  desc: 'Secondary Pneumatic Pump' },
-  machine_gamma: { name: 'Machine Gamma (LAB 3)', desc: 'Thermal Conditioning Reactor' }
+  machine_alpha: { name: 'Machine Alpha (LAB 1)', desc: 'ESP32 + DHT22 + MPU6050' },
+  machine_beta:  { name: 'Machine Beta (LAB 2)',  desc: 'Simulated Node' },
+  machine_gamma: { name: 'Machine Gamma (LAB 3)', desc: 'Simulated Node' }
 };
 
+// Simulates temperature, humidity, vibration only
 const generateMetricValue = (key, t, isAnomaly, machineId) => {
-  const config = METRIC_CONFIGS[key];
-  const mid = (config.optMin + (config.optMax || config.optMin * 1.5)) / 2;
-  const range = ((config.optMax || config.optMin * 1.5) - config.optMin) * 0.4;
-
   const phase = machineId === 'machine_alpha' ? 0 : machineId === 'machine_beta' ? 2 : 4;
-  let val = mid + Math.sin(t + phase) * range + (Math.random() - 0.5) * (range * 0.2);
 
-  if (isAnomaly) {
-    if (machineId === 'machine_alpha' && (key === 'temperature' || key === 'vibration')) {
-      val = config.warnMax + (config.critMax - config.warnMax) * 1.05 + Math.random() * 4;
-    } else if (machineId === 'machine_beta' && (key === 'coolantFlow' || key === 'temperature')) {
-      val = key === 'coolantFlow'
-        ? config.critMin * 0.75 - Math.random() * 1.5
-        : config.warnMax + Math.random() * 5;
-    } else if (machineId === 'machine_gamma' && (key === 'voltage' || key === 'current')) {
-      val = key === 'voltage'
-        ? config.critMin * 0.9 + Math.random() * 5
-        : config.warnMax + Math.random() * 3;
-    }
+  if (key === 'temperature') {
+    let val = 25 + Math.sin(t + phase) * 4 + (Math.random() - 0.5) * 1.5;
+    if (isAnomaly) val = 38 + Math.random() * 5;
+    return parseFloat(Math.max(15, val).toFixed(1));
   }
 
-  return parseFloat(Math.max(0, val).toFixed(2));
+  if (key === 'humidity') {
+    let val = 50 + Math.sin(t * 0.7 + phase) * 10 + (Math.random() - 0.5) * 3;
+    if (isAnomaly) val = 72 + Math.random() * 8;
+    return parseFloat(Math.min(100, Math.max(20, val)).toFixed(1));
+  }
+
+  if (key === 'vibration') {
+    let val = 0.005 + Math.abs(Math.sin(t * 1.3 + phase)) * 0.008 + Math.random() * 0.003;
+    if (isAnomaly) val = 0.12 + Math.random() * 0.15;
+    return parseFloat(Math.max(0, val).toFixed(4));
+  }
+
+  return 0;
 };
 
 export function useGcpData() {
@@ -97,19 +86,19 @@ export function useGcpData() {
       id: 'machine_alpha',
       name: MACHINE_METRICS.machine_alpha.name,
       description: MACHINE_METRICS.machine_alpha.desc,
-      health: 98, temperature: 52.3, vibration: 1.45, current: 11.2, voltage: 224, coolantFlow: 11.8
+      health: 98, temperature: 25.3, humidity: 52.0, vibration: 0.006
     },
     machine_beta: {
       id: 'machine_beta',
       name: MACHINE_METRICS.machine_beta.name,
       description: MACHINE_METRICS.machine_beta.desc,
-      health: 96, temperature: 50.1, vibration: 1.22, current: 10.8, voltage: 223, coolantFlow: 12.1
+      health: 96, temperature: 24.1, humidity: 49.0, vibration: 0.004
     },
     machine_gamma: {
       id: 'machine_gamma',
       name: MACHINE_METRICS.machine_gamma.name,
       description: MACHINE_METRICS.machine_gamma.desc,
-      health: 95, temperature: 48.7, vibration: 1.34, current: 12.5, voltage: 226, coolantFlow: 11.2
+      health: 95, temperature: 26.7, humidity: 55.0, vibration: 0.007
     }
   });
 
@@ -140,7 +129,7 @@ export function useGcpData() {
     }
   }, [connectionState]);
 
-  // ── MOCK mode: local interval simulation ──────────────────────────────────
+  // ── MOCK mode ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (connectionState !== 'mock') return;
 
@@ -154,12 +143,9 @@ export function useGcpData() {
 
         Object.keys(prevMachines).forEach(id => {
           const m = prevMachines[id];
-
           const temp = generateMetricValue('temperature', t, anomalyActive, id);
+          const hum  = generateMetricValue('humidity',    t, anomalyActive, id);
           const vib  = generateMetricValue('vibration',   t, anomalyActive, id);
-          const curr = generateMetricValue('current',     t, anomalyActive, id);
-          const volt = generateMetricValue('voltage',     t, anomalyActive, id);
-          const flow = generateMetricValue('coolantFlow', t, anomalyActive, id);
 
           let health = m.health;
           if (anomalyActive) {
@@ -170,8 +156,7 @@ export function useGcpData() {
           }
           health = parseFloat(health.toFixed(1));
 
-          const thresholds = [45, 30, 10];
-          thresholds.forEach(th => {
+          [45, 30, 10].forEach(th => {
             if (health <= th && !triggeredThresholds.current[id][th]) {
               triggerAlert(th === 10 ? 'critical' : 'warning',
                 `EQUIPMENT STRESS LIMIT: ${m.name} health at ${health}% (Threshold: ${th}%). Urgent service needed!`,
@@ -183,18 +168,18 @@ export function useGcpData() {
             }
           });
 
-          if (temp > METRIC_CONFIGS.temperature.critMax) {
+          if (temp >= METRIC_CONFIGS.temperature.critMax) {
             triggerAlert('critical', `${m.name} Overheating! Temperature reached ${temp}°C.`, `${id}_thermal_node`);
           }
-          if (vib > METRIC_CONFIGS.vibration.critMax) {
-            triggerAlert('critical', `${m.name} High Vibration: ${vib} Mag. Rotor assembly off-axis warning.`, `${id}_vibration_sensor`);
+          if (vib >= METRIC_CONFIGS.vibration.critMax) {
+            triggerAlert('critical', `${m.name} High Vibration: ${vib} Mag.`, `${id}_vibration_sensor`);
           }
 
-          updated[id] = { ...m, health, temperature: temp, vibration: vib, current: curr, voltage: volt, coolantFlow: flow };
+          updated[id] = { ...m, health, temperature: temp, humidity: hum, vibration: vib };
 
-          setHistories(prevHist => ({
-            ...prevHist,
-            [id]: [...prevHist[id], { timestamp, temperature: temp, vibration: vib, current: curr, voltage: volt, coolantFlow: flow }].slice(-25)
+          setHistories(prev => ({
+            ...prev,
+            [id]: [...prev[id], { timestamp, temperature: temp, humidity: hum, vibration: vib }].slice(-25)
           }));
         });
 
@@ -205,7 +190,7 @@ export function useGcpData() {
     return () => clearInterval(interval);
   }, [connectionState, anomalyActive, triggerAlert]);
 
-  // ── LIVE mode: SSE stream from backend (includes ThingSpeak data) ─────────
+  // ── LIVE mode: SSE stream from backend ────────────────────────────────────
   useEffect(() => {
     if (connectionState !== 'live') return;
 
@@ -231,11 +216,8 @@ export function useGcpData() {
             const entry = {
               timestamp: new Date(timestamp).toLocaleTimeString(),
               temperature: m.temperature,
-              vibration:   m.vibration,
               humidity:    m.humidity,
-              current:     m.current,
-              voltage:     m.voltage,
-              coolantFlow: m.coolantFlow
+              vibration:   m.vibration
             };
             next[m.id] = [...(next[m.id] || []), entry].slice(-25);
           });
@@ -249,10 +231,7 @@ export function useGcpData() {
     });
 
     es.addEventListener('new_alert', (e) => {
-      try {
-        const alert = JSON.parse(e.data);
-        setAlerts(prev => [alert, ...prev].slice(0, 100));
-      } catch (_) {}
+      try { setAlerts(prev => [JSON.parse(e.data), ...prev].slice(0, 100)); } catch (_) {}
     });
 
     es.addEventListener('alert_update', (e) => {
@@ -286,7 +265,7 @@ export function useGcpData() {
       setAnomalyActive(prev => {
         const next = !prev;
         if (next) {
-          triggerAlert('critical', 'TEST ANOMALY ENGAGED: Inducing simulated electrical overload, bearing failure, and coolant drops.', 'IIoT Test Suite');
+          triggerAlert('critical', 'TEST ANOMALY ENGAGED: Inducing simulated overload and sensor spikes.', 'IIoT Test Suite');
         } else {
           Object.keys(triggeredThresholds.current).forEach(id => {
             triggeredThresholds.current[id] = { 45: false, 30: false, 10: false };
@@ -303,7 +282,7 @@ export function useGcpData() {
       const next = prev === 'mock' ? 'live' : 'mock';
       triggerAlert('info',
         next === 'live'
-          ? 'Switched to Live mode — backend SSE stream active. Machine Alpha → ThingSpeak (ESP32).'
+          ? 'Switched to Live mode — ThingSpeak SSE active. Machine Alpha → ESP32 sensor data.'
           : 'Switched to Simulator mode — local mock data active.',
         'Gateway Manager');
       return next;

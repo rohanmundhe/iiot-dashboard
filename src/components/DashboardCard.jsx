@@ -1,24 +1,21 @@
 import React from 'react';
 
-export function DashboardCard({ 
-  label = 'LAB 1', 
-  activeTab = 'dashboard', 
-  setActiveTab, 
-  badgeColor = '', 
-  children 
+export function DashboardCard({
+  label = 'LAB 1',
+  activeTab = 'dashboard',
+  setActiveTab,
+  badgeColor = '',
+  children
 }) {
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'temperature', label: 'Temperature' },
-    { id: 'vibration', label: 'Vibration' },
-    { id: 'current', label: 'Current' },
-    { id: 'voltage', label: 'Voltage' },
-    { id: 'coolantFlow', label: 'Coolant Flow' }
+    { id: 'dashboard',    label: 'Dashboard' },
+    { id: 'temperature',  label: 'Temperature' },
+    { id: 'humidity',     label: 'Humidity' },
+    { id: 'vibration',   label: 'Vibration' }
   ];
 
   return (
     <div className="panel-card">
-      {/* Header Bar */}
       <div className="panel-header-bar">
         <div className="panel-title-area">
           <div className={`panel-badge ${badgeColor}`}>
@@ -27,7 +24,6 @@ export function DashboardCard({
           <span className="panel-title">{label}</span>
         </div>
 
-        {/* Tab Navigation */}
         <div className="panel-tabs">
           {tabs.map((tab) => (
             <button
@@ -41,7 +37,6 @@ export function DashboardCard({
         </div>
       </div>
 
-      {/* Card Body Grid / View */}
       <div className="panel-body">
         {children}
       </div>

@@ -1,23 +1,15 @@
 import React from 'react';
-import { 
-  Home, 
-  Thermometer, 
-  Activity, 
-  Zap, 
-  Cpu, 
-  Droplet, 
-  User 
-} from 'lucide-react';
+import { Home, Thermometer, Activity, Droplet, User } from 'lucide-react';
 
-export function Sidebar({ 
-  activePage, 
-  setActivePage, 
-  activeMetric, 
-  setActiveMetric, 
-  connectionState, 
-  userName = "Pushkar Shelar" 
+export function Sidebar({
+  activePage,
+  setActivePage,
+  activeMetric,
+  setActiveMetric,
+  connectionState,
+  userName = "Pushkar Shelar"
 }) {
-  
+
   const handleMetricClick = (metricId) => {
     setActiveMetric(metricId);
     setActivePage('parameter');
@@ -25,10 +17,8 @@ export function Sidebar({
 
   const menuItems = [
     { id: 'temperature', label: 'Temperature', icon: <Thermometer size={16} />, unit: '°C' },
-    { id: 'vibration', label: 'Vibration', icon: <Activity size={16} />, unit: 'Mag' },
-    { id: 'current', label: 'Current', icon: <Zap size={16} />, unit: 'A' },
-    { id: 'voltage', label: 'Voltage', icon: <Cpu size={16} />, unit: 'V' },
-    { id: 'coolantFlow', label: 'Coolant Flow', icon: <Droplet size={16} />, unit: 'L/min' }
+    { id: 'humidity',    label: 'Humidity',    icon: <Droplet size={16} />,      unit: '%' },
+    { id: 'vibration',  label: 'Vibration',   icon: <Activity size={16} />,     unit: 'Mag' }
   ];
 
   return (
@@ -78,7 +68,7 @@ export function Sidebar({
           </div>
         </div>
 
-        {/* Network status connection dot */}
+        {/* Connection status dot */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -97,12 +87,12 @@ export function Sidebar({
             boxShadow: connectionState === 'live' ? '0 0 6px var(--color-success)' : '0 0 6px var(--color-warning)'
           }} />
           <span style={{ fontFamily: "'Share Tech Mono', monospace", textTransform: 'uppercase' }}>
-            {connectionState === 'live' ? 'GCP Firestore Online' : 'Mock Live Emulator'}
+            {connectionState === 'live' ? 'ThingSpeak Online' : 'Simulator Active'}
           </span>
         </div>
       </div>
 
-      {/* Main Home Navigation */}
+      {/* Home Navigation */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <button
           onClick={() => setActivePage('overview')}
@@ -130,7 +120,7 @@ export function Sidebar({
         </button>
       </nav>
 
-      {/* Parameter Telemetry Menu */}
+      {/* Sensor Parameter Menu */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
         <span style={{
           fontSize: '0.65rem',
@@ -140,7 +130,7 @@ export function Sidebar({
           letterSpacing: '0.08em',
           paddingLeft: '8px'
         }}>
-          Collected Data Types
+          Live Sensor Data
         </span>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {menuItems.map((item) => {
@@ -182,7 +172,7 @@ export function Sidebar({
         </nav>
       </div>
 
-      {/* Footer Branding info */}
+      {/* Footer */}
       <div style={{
         fontSize: '0.6rem',
         color: 'var(--color-text-dim)',
@@ -191,7 +181,7 @@ export function Sidebar({
         borderTop: '1px solid rgba(38, 55, 96, 0.2)',
         paddingTop: '12px'
       }}>
-        GCP CLOUD GATEWAY V2.1.0
+        THINGSPEAK GATEWAY V2.1.0
       </div>
     </aside>
   );
