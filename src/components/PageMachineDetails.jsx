@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Thermometer, Activity, Heart, ShieldAlert, AlertTriangle } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
-import { METRIC_CONFIGS } from '../hooks/useGcpData';
+import { getMetricConfigs } from '../hooks/useGcpData';
 
 export function PageMachineDetails({ 
   machine, 
@@ -20,12 +20,14 @@ export function PageMachineDetails({
     );
   }
 
+  const metricConfigs = getMetricConfigs(machine);
+
   // Get status color based on health
   const healthColor = machine.health < 40 ? 'var(--color-danger)' : machine.health < 75 ? 'var(--color-warning)' : 'var(--color-success)';
 
   // Helper to check parameter limits
   const getParamStatusColor = (key, val) => {
-    const config = METRIC_CONFIGS[key];
+    const config = metricConfigs[key];
     if (!config) return 'var(--color-text-main)';
     if (config.critMax && val >= config.critMax) return 'var(--color-danger)';
     if (config.warnMax && val >= config.warnMax) return 'var(--color-warning)';
@@ -37,9 +39,13 @@ export function PageMachineDetails({
   const chartParams = [
     { id: 'temperature', label: 'Temperature (°C)', color: getParamStatusColor('temperature', machine.temperature), unit: '°C' },
     { id: 'vibration', label: 'Vibration (Mag)', color: getParamStatusColor('vibration', machine.vibration), unit: 'Mag' },
+    // Show humidity instead of coolantFlow for the real ThingSpeak/ESP32 machine
+    ...(machine.source === 'thingspeak' && machine.humidity != null
+      ? [{ id: 'humidity', label: 'Humidity (%)', color: getParamStatusColor('humidity', machine.humidity), unit: '%' }]
+      : [{ id: 'coolantFlow', label: 'Coolant Flow (L/min)', color: getParamStatusColor('coolantFlow', machine.coolantFlow), unit: 'L/min' }]
+    ),
     { id: 'current', label: 'Current (A)', color: getParamStatusColor('current', machine.current), unit: 'A' },
     { id: 'voltage', label: 'Voltage (V)', color: getParamStatusColor('voltage', machine.voltage), unit: 'V' },
-    { id: 'coolantFlow', label: 'Coolant Flow (L/min)', color: getParamStatusColor('coolantFlow', machine.coolantFlow), unit: 'L/min' }
   ];
 
   return (
@@ -98,7 +104,7 @@ export function PageMachineDetails({
           padding: '4px 8px',
           borderRadius: '4px'
         }}>
-          GCP DEPLOYMENT NODE: {machine.id.toUpperCase()}
+          {machine.source === 'thingspeak' ? 'THINGSPEAK SENSOR NODE' : 'SIMULATOR NODE'}: {machine.id.toUpperCase()}
         </span>
       </div>
 
@@ -151,7 +157,7 @@ export function PageMachineDetails({
             <Thermometer size={24} style={{ color: 'var(--color-primary)' }} />
           </div>
           <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Optimal Range: {METRIC_CONFIGS.temperature.optMin}°C - {METRIC_CONFIGS.temperature.optMax}°C
+            Optimal Range: {metricConfigs.temperature.optMin}°C - {metricConfigs.temperature.optMax}°C
           </div>
         </div>
 
@@ -165,7 +171,7 @@ export function PageMachineDetails({
             <Activity size={24} style={{ color: 'var(--color-primary)' }} />
           </div>
           <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Optimal limit: &lt; {METRIC_CONFIGS.vibration.optMax} Mag
+            Optimal limit: &lt; {metricConfigs.vibration.optMax} Mag
           </div>
         </div>
       </div>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Cloud, 
-  Database, 
-  Clock, 
-  Flame 
+import {
+  Wifi,
+  Database,
+  Clock,
+  Flame
 } from 'lucide-react';
 import { useGcpData } from './hooks/useGcpData';
 import Sidebar from './components/Sidebar';
@@ -74,8 +74,8 @@ export function App() {
             >
               {connectionState === 'live' ? (
                 <>
-                  <Cloud size={14} />
-                  <span>GCP Cloud Active</span>
+                  <Wifi size={14} />
+                  <span>ThingSpeak Live</span>
                 </>
               ) : (
                 <>
