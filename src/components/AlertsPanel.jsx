@@ -1,119 +1,90 @@
 import React, { useState } from 'react';
 import { AlertOctagon, AlertTriangle, Info, Check, Search, Trash2 } from 'lucide-react';
 
-export function AlertsPanel({ alerts, acknowledgeAlert, clearAllAlerts }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'critical', 'warning', 'info'
+const LEVEL_COLOR = {
+  critical: '#dc2626',
+  warning:  '#d97706',
+  info:     '#0ea5e9'
+};
 
-  // Filter alerts by search term and level, ignoring acknowledged ones or showing them at the bottom
-  const filteredAlerts = alerts.filter(alert => {
-    const matchesSearch = alert.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          alert.source.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (activeFilter === 'all') return matchesSearch;
-    return matchesSearch && alert.level === activeFilter;
+export function AlertsPanel({ alerts, acknowledgeAlert, clearAllAlerts }) {
+  const [query, setQuery]   = useState('');
+  const [filter, setFilter] = useState('all');
+
+  const filtered = alerts.filter(a => {
+    const q = a.message.toLowerCase().includes(query.toLowerCase()) ||
+              a.source.toLowerCase().includes(query.toLowerCase());
+    return filter === 'all' ? q : q && a.level === filter;
   });
 
-  const getAlertIcon = (level) => {
-    switch (level) {
-      case 'critical':
-        return <AlertOctagon size={16} className="text-red-500" style={{ color: '#ef4444' }} />;
-      case 'warning':
-        return <AlertTriangle size={16} className="text-amber-500" style={{ color: '#f59e0b' }} />;
-      default:
-        return <Info size={16} className="text-cyan-500" style={{ color: '#38bdf8' }} />;
-    }
+  const activeCount = alerts.filter(a => !a.acknowledged).length;
+
+  const Icon = ({ level }) => {
+    if (level === 'critical') return <AlertOctagon size={14} style={{ color: '#dc2626', flexShrink: 0 }} />;
+    if (level === 'warning')  return <AlertTriangle size={14} style={{ color: '#d97706', flexShrink: 0 }} />;
+    return <Info size={14} style={{ color: '#0ea5e9', flexShrink: 0 }} />;
   };
 
-  const activeAlertsCount = alerts.filter(a => !a.acknowledged).length;
+  const FILTERS = ['all', 'critical', 'warning', 'info'];
 
   return (
     <div className="alerts-container">
-      {/* Alert Header controls */}
+
+      {/* Header */}
       <div className="alerts-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>Alarms & Alerts Log</span>
-          {activeAlertsCount > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span>Alerts Log</span>
+          {activeCount > 0 && (
             <span style={{
-              background: '#ef4444',
-              color: '#fff',
-              fontSize: '0.65rem',
-              padding: '2px 6px',
-              borderRadius: '10px',
-              fontFamily: "'Orbitron', monospace",
-              boxShadow: '0 0 8px rgba(239, 68, 68, 0.4)'
+              background: '#dc2626', color: '#fff',
+              fontSize: '0.62rem', fontWeight: '700',
+              padding: '1px 7px', borderRadius: '10px'
             }}>
-              {activeAlertsCount} Active
+              {activeCount} active
             </span>
           )}
         </div>
-        
-        {activeAlertsCount > 0 && (
-          <button 
-            onClick={clearAllAlerts}
-            className="ack-btn"
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px' }}
-          >
-            <Trash2 size={12} />
-            Ack All
+        {activeCount > 0 && (
+          <button onClick={clearAllAlerts} className="ack-btn">
+            <Trash2 size={11} /> Clear all
           </button>
         )}
       </div>
 
-      {/* Filter and Search Bar */}
-      <div style={{
-        padding: '8px 12px',
-        borderBottom: '1px solid rgba(38, 55, 96, 0.4)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        background: 'rgba(5, 8, 17, 0.2)'
-      }}>
-        {/* Search Input */}
+      {/* Search + filter */}
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: 'rgba(10, 15, 30, 0.6)',
-          border: '1px solid rgba(38, 55, 96, 0.4)',
-          borderRadius: '6px',
-          padding: '4px 8px',
-          gap: '8px'
+          display: 'flex', alignItems: 'center', gap: '8px',
+          background: '#f8fafc', border: '1px solid #e2e8f0',
+          borderRadius: '8px', padding: '6px 10px'
         }}>
-          <Search size={14} style={{ color: '#9ca3af' }} />
-          <input 
-            type="text" 
-            placeholder="Search alerts or sources..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+          <Search size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />
+          <input
+            type="text"
+            placeholder="Search alerts…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
             style={{
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              color: '#fff',
-              fontSize: '0.75rem',
-              width: '100%',
+              background: 'transparent', border: 'none', outline: 'none',
+              color: '#0f172a', fontSize: '0.75rem', width: '100%',
               fontFamily: "'Inter', sans-serif"
             }}
           />
         </div>
 
-        {/* Filter Badges */}
-        <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px' }}>
-          {['all', 'critical', 'warning', 'info'].map((lvl) => (
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {FILTERS.map(lvl => (
             <button
               key={lvl}
-              onClick={() => setActiveFilter(lvl)}
+              onClick={() => setFilter(lvl)}
               style={{
-                background: activeFilter === lvl ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-                border: `1px solid ${activeFilter === lvl ? '#38bdf8' : 'rgba(38, 55, 96, 0.3)'}`,
-                color: activeFilter === lvl ? '#fff' : '#9ca3af',
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                transition: 'all 0.15s ease'
+                padding: '3px 10px', borderRadius: '6px',
+                fontSize: '0.64rem', fontWeight: '600',
+                textTransform: 'capitalize', cursor: 'pointer',
+                border: filter === lvl ? `1px solid ${LEVEL_COLOR[lvl] || '#0ea5e9'}` : '1px solid #e2e8f0',
+                background: filter === lvl ? (lvl === 'all' ? '#e0f2fe' : lvl === 'critical' ? '#fee2e2' : lvl === 'warning' ? '#fef3c7' : '#e0f2fe') : '#ffffff',
+                color: filter === lvl ? (LEVEL_COLOR[lvl] || '#0284c7') : '#64748b',
+                transition: 'all 0.12s ease'
               }}
             >
               {lvl}
@@ -122,53 +93,37 @@ export function AlertsPanel({ alerts, acknowledgeAlert, clearAllAlerts }) {
         </div>
       </div>
 
-      {/* Alerts Feed */}
+      {/* Feed */}
       <div className="alerts-list">
-        {filteredAlerts.length === 0 ? (
-          <div style={{
-            padding: '24px 12px',
-            textAlign: 'center',
-            color: '#6b7280',
-            fontSize: '0.75rem',
-            fontStyle: 'italic'
-          }}>
-            No active alarms match the selected filter.
+        {filtered.length === 0 ? (
+          <div style={{ padding: '28px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem' }}>
+            No alerts match the current filter.
           </div>
         ) : (
-          filteredAlerts.map((alert) => (
-            <div 
-              key={alert.id} 
+          filtered.map(alert => (
+            <div
+              key={alert.id}
               className={`alert-item ${alert.level}`}
-              style={{
-                opacity: alert.acknowledged ? 0.45 : 1,
-                borderLeftWidth: '3px',
-                transition: 'opacity 0.2s ease, transform 0.2s ease',
-              }}
+              style={{ opacity: alert.acknowledged ? 0.5 : 1, transition: 'opacity 0.2s' }}
             >
               <div className="alert-meta">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {getAlertIcon(alert.level)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Icon level={alert.level} />
                   <span className="alert-level">{alert.level}</span>
                 </div>
                 <span className="alert-timestamp">{alert.timestamp}</span>
               </div>
+
               <div className="alert-msg">{alert.message}</div>
-              
+
               <div className="alert-footer">
-                <span className="alert-source">Src: {alert.source}</span>
-                {!alert.acknowledged ? (
-                  <button 
-                    onClick={() => acknowledgeAlert(alert.id)}
-                    className="ack-btn"
-                    title="Acknowledge Alert"
-                    style={{ display: 'flex', alignItems: 'center', gap: '2px' }}
-                  >
-                    <Check size={10} />
-                    Ack
-                  </button>
-                ) : (
-                  <span style={{ fontSize: '0.6rem', color: '#6b7280', fontFamily: "'Share Tech Mono', monospace" }}>ACKNOWLEDGED</span>
-                )}
+                <span className="alert-source">{alert.source}</span>
+                {!alert.acknowledged
+                  ? <button onClick={() => acknowledgeAlert(alert.id)} className="ack-btn">
+                      <Check size={10} /> Ack
+                    </button>
+                  : <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: '600' }}>ACKNOWLEDGED</span>
+                }
               </div>
             </div>
           ))

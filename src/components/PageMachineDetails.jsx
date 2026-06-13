@@ -1,145 +1,180 @@
 import React from 'react';
-import { ArrowLeft, Thermometer, Activity, Heart, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Thermometer, Activity, Heart, ShieldAlert, AlertTriangle, Wifi, Server } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
 import { METRIC_CONFIGS } from '../hooks/useGcpData';
 
 export function PageMachineDetails({ machine, history = [], setActivePage }) {
   if (!machine) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        No machine selected. Return to the{' '}
-        <span style={{ color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => setActivePage('overview')}>Overview</span> page.
+      <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+        No machine selected.{' '}
+        <span style={{ color: '#0ea5e9', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => setActivePage('overview')}>Return to Overview</span>
       </div>
     );
   }
 
-  const healthColor = machine.health < 40 ? 'var(--color-danger)' : machine.health < 75 ? 'var(--color-warning)' : 'var(--color-success)';
+  const hColor = machine.health < 40 ? '#dc2626' : machine.health < 75 ? '#d97706' : '#059669';
+  const hTint  = machine.health < 40 ? '#fee2e2' : machine.health < 75 ? '#fef3c7' : '#d1fae5';
+  const hLabel = machine.health < 40 ? 'danger' : machine.health < 75 ? 'warning' : 'success';
 
-  const getStatusColor = (key, val) => {
+  const mColor = (key, val) => {
     const cfg = METRIC_CONFIGS[key];
-    if (!cfg || val == null) return 'var(--color-text-main)';
-    if (cfg.critMax && val >= cfg.critMax) return 'var(--color-danger)';
-    if (cfg.warnMax && val >= cfg.warnMax) return 'var(--color-warning)';
-    return 'var(--color-success)';
+    if (!cfg || val == null) return '#0f172a';
+    if (cfg.critMax && val >= cfg.critMax) return '#dc2626';
+    if (cfg.warnMax && val >= cfg.warnMax) return '#d97706';
+    return '#059669';
+  };
+  const mTint = (key, val) => {
+    const cfg = METRIC_CONFIGS[key];
+    if (!cfg || val == null) return '#f1f5f9';
+    if (cfg.critMax && val >= cfg.critMax) return '#fee2e2';
+    if (cfg.warnMax && val >= cfg.warnMax) return '#fef3c7';
+    return '#d1fae5';
   };
 
+  const isLive = machine.source === 'thingspeak';
+
   const chartParams = [
-    { id: 'temperature', label: 'Temperature (°C)', unit: '°C' },
-    { id: 'vibration',   label: 'Vibration (Mag)',  unit: 'Mag' }
+    { id: 'temperature', label: 'Temperature', unit: '°C', Icon: Thermometer },
+    { id: 'vibration',   label: 'Vibration',   unit: 'Mag', Icon: Activity }
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', minHeight: 0, overflowY: 'auto' }}>
 
-      {/* Header */}
+      {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={() => setActivePage('overview')}
-            style={{
-              background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.3)',
-              color: 'var(--color-primary)', width: '32px', height: '32px', borderRadius: '8px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-            }}
             className="back-arrow-btn"
+            style={{
+              width: '34px', height: '34px', borderRadius: '9px',
+              background: '#f1f5f9', border: '1px solid #e2e8f0',
+              color: '#475569', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', cursor: 'pointer'
+            }}
           >
             <ArrowLeft size={16} />
           </button>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', textTransform: 'uppercase', color: '#fff' }}>
-              {machine.name} Diagnostics
+          <div>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#0f172a' }}>
+              {machine.name}
             </h2>
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              {machine.description} • Real-time Sensor Analysis
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              {machine.description} · Real-time Sensor Analysis
             </span>
           </div>
         </div>
 
-        <span style={{
-          fontFamily: "'Share Tech Mono', monospace", fontSize: '0.7rem', color: 'var(--color-text-dim)',
-          background: 'rgba(10, 15, 30, 0.4)', border: '1px solid var(--border-color)',
-          padding: '4px 8px', borderRadius: '4px'
+        {/* Source badge */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          padding: '5px 12px', borderRadius: '20px',
+          background: isLive ? '#d1fae5' : '#f1f5f9',
+          fontSize: '0.68rem', fontWeight: '700',
+          color: isLive ? '#065f46' : '#64748b'
         }}>
-          {machine.source === 'thingspeak' ? 'THINGSPEAK LIVE NODE' : 'SIMULATOR NODE'}: {machine.id.toUpperCase()}
-        </span>
+          {isLive ? <Wifi size={11} /> : <Server size={11} />}
+          {isLive ? 'ThingSpeak Live' : 'Simulated'}
+        </div>
       </div>
 
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+      {/* Stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
 
         {/* Health */}
-        <div className={`stat-card ${machine.health < 40 ? 'danger' : machine.health < 75 ? 'warning' : 'success'}`} style={{ padding: '16px' }}>
+        <div className={`stat-card ${hLabel}`} style={{ padding: '18px' }}>
           <span className="stat-label">Equipment Health</span>
-          <div className="stat-value-container" style={{ marginTop: '4px' }}>
-            <span className="stat-value" style={{ fontSize: '2.2rem' }}>{machine.health}%</span>
+          <div className="stat-value-container" style={{ marginTop: '6px' }}>
+            <span className="stat-value" style={{ fontSize: '2.4rem' }}>{machine.health}%</span>
             {machine.health < 40
-              ? <ShieldAlert size={24} style={{ color: 'var(--color-danger)', animation: 'pulse 1s infinite' }} />
+              ? <ShieldAlert size={26} style={{ color: '#dc2626' }} />
               : machine.health < 75
-                ? <AlertTriangle size={24} style={{ color: 'var(--color-warning)' }} />
-                : <Heart size={24} style={{ color: 'var(--color-success)' }} />
+                ? <AlertTriangle size={26} style={{ color: '#d97706' }} />
+                : <Heart size={26} style={{ color: '#059669' }} />
             }
           </div>
-          <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden', marginTop: '8px' }}>
-            <div style={{ height: '100%', width: `${machine.health}%`, background: healthColor, boxShadow: `0 0 8px ${healthColor}`, transition: 'width 0.4s ease' }} />
+          {/* Progress bar */}
+          <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginTop: '10px' }}>
+            <div style={{ height: '100%', width: `${machine.health}%`, background: hColor, borderRadius: '3px', transition: 'width 0.5s ease' }} />
           </div>
-          <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '6px', display: 'block' }}>
-            {machine.health < 40 ? 'Action Required: Node Fault Active' : machine.health < 75 ? 'Warning: Operating under stress' : 'Operating Nominally'}
+          <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '6px' }}>
+            {machine.health < 40 ? 'Action required — fault detected' : machine.health < 75 ? 'Operating under stress' : 'All systems nominal'}
           </span>
         </div>
 
         {/* Temperature */}
-        <div className="stat-card" style={{ padding: '16px' }}>
-          <span className="stat-label">Temperature</span>
-          <div className="stat-value-container" style={{ marginTop: '4px' }}>
-            <span className="stat-value" style={{ fontSize: '2.2rem', color: getStatusColor('temperature', machine.temperature) }}>
-              {machine.temperature} °C
-            </span>
-            <Thermometer size={24} style={{ color: 'var(--color-primary)' }} />
-          </div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Optimal: {METRIC_CONFIGS.temperature.optMin}°C – {METRIC_CONFIGS.temperature.optMax}°C &nbsp;|&nbsp; Critical: ≥{METRIC_CONFIGS.temperature.critMax}°C
-          </div>
-        </div>
+        {machine.temperature != null && (() => {
+          const c = mColor('temperature', machine.temperature);
+          const t = mTint('temperature', machine.temperature);
+          return (
+            <div className="stat-card" style={{ padding: '18px' }}>
+              <span className="stat-label">Temperature</span>
+              <div className="stat-value-container" style={{ marginTop: '6px' }}>
+                <span className="stat-value" style={{ fontSize: '2.4rem', color: c }}>
+                  {machine.temperature} °C
+                </span>
+                <Thermometer size={26} style={{ color: c }} />
+              </div>
+              <div style={{ marginTop: '8px', padding: '5px 10px', background: t, borderRadius: '7px', fontSize: '0.65rem', color: c, fontWeight: '600' }}>
+                Optimal {METRIC_CONFIGS.temperature.optMin}–{METRIC_CONFIGS.temperature.optMax}°C · Critical ≥{METRIC_CONFIGS.temperature.critMax}°C
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Vibration */}
-        <div className="stat-card" style={{ padding: '16px' }}>
-          <span className="stat-label">Vibration</span>
-          <div className="stat-value-container" style={{ marginTop: '4px' }}>
-            <span className="stat-value" style={{ fontSize: '2.2rem', color: getStatusColor('vibration', machine.vibration) }}>
-              {machine.vibration} Mag
-            </span>
-            <Activity size={24} style={{ color: 'var(--color-primary)' }} />
-          </div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Normal: ≤{METRIC_CONFIGS.vibration.optMax} Mag &nbsp;|&nbsp; Critical: ≥{METRIC_CONFIGS.vibration.critMax} Mag
-          </div>
-        </div>
+        {machine.vibration != null && (() => {
+          const c = mColor('vibration', machine.vibration);
+          const t = mTint('vibration', machine.vibration);
+          return (
+            <div className="stat-card" style={{ padding: '18px' }}>
+              <span className="stat-label">Vibration</span>
+              <div className="stat-value-container" style={{ marginTop: '6px' }}>
+                <span className="stat-value" style={{ fontSize: '2.4rem', color: c }}>
+                  {machine.vibration} Mag
+                </span>
+                <Activity size={26} style={{ color: c }} />
+              </div>
+              <div style={{ marginTop: '8px', padding: '5px 10px', background: t, borderRadius: '7px', fontSize: '0.65rem', color: c, fontWeight: '600' }}>
+                Normal ≤{METRIC_CONFIGS.vibration.optMax} · Critical ≥{METRIC_CONFIGS.vibration.critMax} Mag
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
-      {/* Telemetry Charts */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, minHeight: 0 }}>
-        <span style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-dim)', letterSpacing: '0.05em' }}>
-          Telemetry Graph Matrix
+      {/* Charts section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minHeight: 0 }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.07em', color: '#94a3b8' }}>
+          Live Telemetry Charts
         </span>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', overflowY: 'auto', paddingBottom: '12px' }}>
-          {chartParams.map((param) => {
-            const val = machine[param.id];
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', overflowY: 'auto', paddingBottom: '8px' }}>
+          {chartParams.map(({ id, label, unit, Icon }) => {
+            const val = machine[id];
             if (val == null) return null;
-            const color = getStatusColor(param.id, val);
+            const c = mColor(id, val);
+            const t = mTint(id, val);
             return (
-              <div key={param.id} style={{
-                background: 'var(--bg-card)', border: '1px solid var(--border-color)',
-                borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px'
+              <div key={id} style={{
+                background: '#ffffff', borderRadius: '12px',
+                padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#fff' }}>{param.label}</span>
-                  <span style={{ fontFamily: 'var(--font-digital)', fontSize: '0.85rem', fontWeight: 'bold', color }}>
-                    {val} {param.unit}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', color: '#64748b' }}>
+                    <Icon size={15} />
+                    <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#0f172a' }}>{label}</span>
+                  </div>
+                  <span style={{ fontSize: '0.92rem', fontWeight: '800', color: c, background: t, padding: '3px 10px', borderRadius: '8px', fontFamily: "'Share Tech Mono', monospace" }}>
+                    {val} {unit}
                   </span>
                 </div>
-                <div style={{ height: '110px', background: 'rgba(5, 8, 17, 0.2)', borderRadius: '6px', padding: '6px 2px' }}>
-                  <TelemetryChart data={history} dataKey={param.id} strokeColor={color} unit={param.unit} />
+                <div style={{ height: '110px', background: '#f8fafc', borderRadius: '8px', padding: '6px 2px' }}>
+                  <TelemetryChart data={history} dataKey={id} strokeColor={c} unit={unit} />
                 </div>
               </div>
             );

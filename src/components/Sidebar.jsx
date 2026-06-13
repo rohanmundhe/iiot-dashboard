@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Thermometer, Activity, User } from 'lucide-react';
+import { Home, Thermometer, Activity, User, Wifi, Server } from 'lucide-react';
 
 export function Sidebar({
   activePage,
@@ -9,7 +9,6 @@ export function Sidebar({
   connectionState,
   userName = "Pushkar Shelar"
 }) {
-
   const handleMetricClick = (metricId) => {
     setActiveMetric(metricId);
     setActivePage('parameter');
@@ -20,134 +19,137 @@ export function Sidebar({
     { id: 'vibration',   label: 'Vibration',   icon: <Activity size={16} />,    unit: 'Mag' }
   ];
 
+  const isLive = connectionState === 'live';
+
   return (
     <aside style={{
-      width: '260px',
-      background: 'var(--bg-card)',
-      backdropFilter: 'blur(16px)',
-      borderRight: '1px solid var(--border-color)',
+      width: '240px',
+      background: '#ffffff',
+      borderRight: '1px solid #e2e8f0',
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      padding: '20px 16px',
-      gap: '24px',
+      padding: '20px 14px',
+      gap: '6px',
       flexShrink: 0
     }}>
-      {/* Profile */}
-      <div style={{
-        padding: '12px 14px',
-        background: 'rgba(10, 15, 30, 0.5)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '8px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        boxShadow: 'inset 0 0 5px rgba(56, 189, 248, 0.05)'
-      }}>
+
+      {/* Brand */}
+      <div style={{ padding: '4px 8px 18px', borderBottom: '1px solid #e2e8f0', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '36px', height: '36px', borderRadius: '50%',
-            background: 'rgba(56, 189, 248, 0.15)',
-            border: '1px solid var(--color-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--color-primary)'
+            width: '36px', height: '36px', borderRadius: '10px',
+            background: '#0ea5e9',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            <User size={18} />
+            <Wifi size={18} color="#fff" />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fff' }}>{userName}</span>
-            <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Lead IIoT Engineer
-            </span>
+          <div>
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>IIoT Monitor</div>
+            <div style={{ fontSize: '0.62rem', color: '#94a3b8', fontWeight: '500' }}>ThingSpeak Gateway</div>
           </div>
         </div>
+      </div>
 
+      {/* Connection status pill */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '8px 12px', borderRadius: '10px',
+        background: isLive ? '#d1fae5' : '#fef3c7',
+        marginBottom: '8px'
+      }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '0.65rem', color: 'var(--color-text-muted)',
-          borderTop: '1px solid rgba(38, 55, 96, 0.3)',
-          paddingTop: '6px', marginTop: '2px'
+          width: '7px', height: '7px', borderRadius: '50%',
+          background: isLive ? '#059669' : '#d97706',
+          flexShrink: 0
+        }} />
+        <span style={{
+          fontSize: '0.68rem', fontWeight: '600',
+          color: isLive ? '#065f46' : '#92400e'
         }}>
-          <div style={{
-            width: '6px', height: '6px', borderRadius: '50%',
-            background: connectionState === 'live' ? 'var(--color-success)' : 'var(--color-warning)',
-            boxShadow: connectionState === 'live' ? '0 0 6px var(--color-success)' : '0 0 6px var(--color-warning)'
-          }} />
-          <span style={{ fontFamily: "'Share Tech Mono', monospace", textTransform: 'uppercase' }}>
-            {connectionState === 'live' ? 'ThingSpeak Online' : 'Simulator Active'}
-          </span>
-        </div>
+          {isLive ? 'ThingSpeak Connected' : 'Simulator Mode'}
+        </span>
+      </div>
+
+      {/* Nav label */}
+      <div style={{ padding: '4px 8px', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.09em', color: '#94a3b8', marginTop: '6px' }}>
+        Navigation
       </div>
 
       {/* Home */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <button
-          onClick={() => setActivePage('overview')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            width: '100%',
-            background: activePage === 'overview' ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
-            border: `1px solid ${activePage === 'overview' ? 'var(--color-primary)' : 'transparent'}`,
-            color: activePage === 'overview' ? '#fff' : 'var(--color-text-muted)',
-            padding: '10px 14px', borderRadius: '6px', cursor: 'pointer',
-            fontSize: '0.8rem', fontWeight: '600', textAlign: 'left',
-            transition: 'all 0.2s ease', textTransform: 'uppercase', letterSpacing: '0.03em'
-          }}
-        >
-          <Home size={16} />
-          <span>Home Overview</span>
-        </button>
-      </nav>
+      <button
+        onClick={() => setActivePage('overview')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          width: '100%', padding: '9px 12px', borderRadius: '9px',
+          border: 'none', cursor: 'pointer', textAlign: 'left',
+          fontSize: '0.82rem', fontWeight: '600',
+          background: activePage === 'overview' ? '#e0f2fe' : 'transparent',
+          color: activePage === 'overview' ? '#0284c7' : '#475569',
+          transition: 'all 0.15s ease'
+        }}
+      >
+        <Home size={15} />
+        <span>Overview</span>
+      </button>
 
-      {/* Sensor Metrics */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-        <span style={{
-          fontSize: '0.65rem', fontWeight: '700', textTransform: 'uppercase',
-          color: 'var(--color-text-dim)', letterSpacing: '0.08em', paddingLeft: '8px'
-        }}>
-          Live Sensor Data
-        </span>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {menuItems.map((item) => {
-            const isSelected = activePage === 'parameter' && activeMetric === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleMetricClick(item.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  width: '100%',
-                  background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
-                  border: `1px solid ${isSelected ? 'var(--color-primary)' : 'transparent'}`,
-                  color: isSelected ? '#fff' : 'var(--color-text-muted)',
-                  padding: '10px 14px', borderRadius: '6px', cursor: 'pointer',
-                  fontSize: '0.8rem', fontWeight: '500', transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {item.icon}
-                  <span>{item.label}</span>
-                </div>
-                <span style={{
-                  fontFamily: "'Share Tech Mono', monospace", fontSize: '0.65rem',
-                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text-dim)'
-                }}>
-                  {item.unit}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+      {/* Sensor label */}
+      <div style={{ padding: '4px 8px', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.09em', color: '#94a3b8', marginTop: '10px' }}>
+        Sensor Data
       </div>
 
-      {/* Footer */}
+      {/* Sensor nav */}
+      {menuItems.map((item) => {
+        const isSelected = activePage === 'parameter' && activeMetric === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => handleMetricClick(item.id)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '9px 12px', borderRadius: '9px',
+              border: 'none', cursor: 'pointer', textAlign: 'left',
+              fontSize: '0.82rem', fontWeight: '500',
+              background: isSelected ? '#e0f2fe' : 'transparent',
+              color: isSelected ? '#0284c7' : '#475569',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {item.icon}
+              <span>{item.label}</span>
+            </div>
+            <span style={{
+              fontSize: '0.62rem', fontFamily: "'Share Tech Mono', monospace",
+              color: isSelected ? '#0284c7' : '#94a3b8', fontWeight: '700'
+            }}>
+              {item.unit}
+            </span>
+          </button>
+        );
+      })}
+
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* User card */}
       <div style={{
-        fontSize: '0.6rem', color: 'var(--color-text-dim)',
-        fontFamily: "'Share Tech Mono', monospace",
-        textAlign: 'center',
-        borderTop: '1px solid rgba(38, 55, 96, 0.2)', paddingTop: '12px'
+        padding: '12px', borderRadius: '12px',
+        background: '#f8fafc', border: '1px solid #e2e8f0',
+        display: 'flex', alignItems: 'center', gap: '10px'
       }}>
-        THINGSPEAK GATEWAY V2.1.0
+        <div style={{
+          width: '34px', height: '34px', borderRadius: '50%',
+          background: '#0ea5e9',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0
+        }}>
+          <User size={16} color="#fff" />
+        </div>
+        <div>
+          <div style={{ fontSize: '0.78rem', fontWeight: '600', color: '#0f172a' }}>{userName}</div>
+          <div style={{ fontSize: '0.6rem', color: '#94a3b8' }}>IIoT Engineer</div>
+        </div>
       </div>
     </aside>
   );
