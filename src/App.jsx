@@ -43,14 +43,14 @@ export function App() {
       <div className="main-content-area">
         <header className="dashboard-header">
           <div className="header-title">
-            <div className="pulse-indicator" />
+            <div className={`pulse-indicator ${connectionState === 'disconnected' ? 'alerting' : ''}`} />
             <h1>IIoT Machine Health Monitor</h1>
           </div>
 
           <div className="header-right">
-            <div className={`connection-badge ${connectionState === 'live' ? 'live' : 'sim'}`}>
+            <div className={`connection-badge ${connectionState === 'live' ? 'live' : connectionState === 'disconnected' ? 'disconnected' : 'sim'}`}>
               <Radio size={11} />
-              <span>{connectionState === 'live' ? 'ThingSpeak Live' : 'Simulator'}</span>
+              <span>{connectionState === 'live' ? 'ThingSpeak Live' : connectionState === 'disconnected' ? 'API Not Connected' : 'Simulator'}</span>
             </div>
             <div className="clock-widget">
               <Clock size={12} />

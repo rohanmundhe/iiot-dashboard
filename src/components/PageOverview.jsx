@@ -30,9 +30,9 @@ export function PageOverview({
 }) {
   const goTo = (id) => { setSelectedMachineId(id); setActivePage('machine'); };
 
-  const hColor = (h) => h < 40 ? '#dc2626' : h < 75 ? '#d97706' : '#059669';
-  const hTint  = (h) => h < 40 ? '#fee2e2' : h < 75 ? '#fef3c7' : '#d1fae5';
-  const hLabel = (h) => h < 40 ? 'Critical' : h < 75 ? 'Warning' : 'Nominal';
+  const hColor = (h) => h == null ? '#cbd5e1' : h < 40 ? '#dc2626' : h < 75 ? '#d97706' : '#059669';
+  const hTint  = (h) => h == null ? '#f1f5f9' : h < 40 ? '#fee2e2' : h < 75 ? '#fef3c7' : '#d1fae5';
+  const hLabel = (h) => h == null ? 'No Data' : h < 40 ? 'Critical' : h < 75 ? 'Warning' : 'Nominal';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', minHeight: 0, overflowY: 'auto', paddingRight: '2px' }}>
@@ -82,8 +82,10 @@ export function PageOverview({
                 <div style={{ position: 'relative', width: '72px', height: '72px', flexShrink: 0 }}>
                   <HealthRing pct={m.health} color={c} />
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '1.05rem', fontWeight: '800', color: c, lineHeight: 1 }}>{m.health}</span>
-                    <span style={{ fontSize: '0.5rem', color: '#94a3b8', fontWeight: '600' }}>%</span>
+                    <span style={{ fontSize: m.health == null ? '0.7rem' : '1.05rem', fontWeight: '800', color: c, lineHeight: 1 }}>
+                      {m.health == null ? '--' : m.health}
+                    </span>
+                    {m.health != null && <span style={{ fontSize: '0.5rem', color: '#94a3b8', fontWeight: '600' }}>%</span>}
                   </div>
                 </div>
 
@@ -103,15 +105,15 @@ export function PageOverview({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Thermometer size={13} style={{ color: '#0ea5e9', flexShrink: 0 }} />
                       <span style={{ fontSize: '0.68rem', color: '#64748b', minWidth: '72px' }}>Temperature</span>
-                      <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#0f172a', fontFamily: "'Share Tech Mono', monospace" }}>
-                        {m.temperature} °C
+                      <span style={{ fontSize: '0.82rem', fontWeight: '700', color: m.temperature == null ? '#94a3b8' : '#0f172a', fontFamily: "'Share Tech Mono', monospace" }}>
+                        {m.temperature == null ? '--' : `${m.temperature} °C`}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Activity size={13} style={{ color: '#0ea5e9', flexShrink: 0 }} />
                       <span style={{ fontSize: '0.68rem', color: '#64748b', minWidth: '72px' }}>Vibration</span>
-                      <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#0f172a', fontFamily: "'Share Tech Mono', monospace" }}>
-                        {m.vibration} Mag
+                      <span style={{ fontSize: '0.82rem', fontWeight: '700', color: m.vibration == null ? '#94a3b8' : '#0f172a', fontFamily: "'Share Tech Mono', monospace" }}>
+                        {m.vibration == null ? '--' : `${m.vibration} Mag`}
                       </span>
                     </div>
                   </div>
@@ -122,10 +124,10 @@ export function PageOverview({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem' }}>
                   <span style={{ color: '#94a3b8', fontWeight: '500' }}>Health Index</span>
-                  <span style={{ color: c, fontWeight: '700' }}>{m.health}%</span>
+                  <span style={{ color: c, fontWeight: '700' }}>{m.health == null ? '--' : `${m.health}%`}</span>
                 </div>
                 <div style={{ height: '5px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${m.health}%`, background: c, borderRadius: '3px', transition: 'width 0.5s ease' }} />
+                  <div style={{ height: '100%', width: `${m.health ?? 0}%`, background: c, borderRadius: '3px', transition: 'width 0.5s ease' }} />
                 </div>
               </div>
             </div>

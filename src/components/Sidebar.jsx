@@ -20,6 +20,7 @@ export function Sidebar({
   ];
 
   const isLive = connectionState === 'live';
+  const isDisconnected = connectionState === 'disconnected';
 
   return (
     <aside style={{
@@ -55,19 +56,19 @@ export function Sidebar({
       <div style={{
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 12px', borderRadius: '10px',
-        background: isLive ? '#d1fae5' : '#fef3c7',
+        background: isDisconnected ? '#f1f5f9' : isLive ? '#d1fae5' : '#fef3c7',
         marginBottom: '8px'
       }}>
         <div style={{
           width: '7px', height: '7px', borderRadius: '50%',
-          background: isLive ? '#059669' : '#d97706',
+          background: isDisconnected ? '#cbd5e1' : isLive ? '#059669' : '#d97706',
           flexShrink: 0
         }} />
         <span style={{
           fontSize: '0.68rem', fontWeight: '600',
-          color: isLive ? '#065f46' : '#92400e'
+          color: isDisconnected ? '#94a3b8' : isLive ? '#065f46' : '#92400e'
         }}>
-          {isLive ? 'ThingSpeak Connected' : 'Simulator Mode'}
+          {isDisconnected ? 'API Not Connected' : isLive ? 'ThingSpeak Connected' : 'Simulator Mode'}
         </span>
       </div>
 

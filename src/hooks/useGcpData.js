@@ -33,23 +33,23 @@ const generateMetricValue = (key, t, isAnomaly, machineId) => {
 };
 
 export function useGcpData() {
-  const [connectionState, setConnectionState] = useState('live');
+  const [connectionState, setConnectionState] = useState('disconnected');
   const [anomalyActive, setAnomalyActive] = useState(false);
   const [alerts, setAlerts] = useState([
     {
       id: 'init-1',
-      level: 'info',
-      message: 'Dashboard loaded. Simulator mode active. Switch to ThingSpeak Live to stream real sensor data.',
+      level: 'warning',
+      message: 'ThingSpeak Read API key not configured. Add THINGSPEAK_READ_API_KEY to backend/.env and restart the server.',
       timestamp: new Date(Date.now() - 30000).toLocaleTimeString(),
-      source: 'IIoT Dashboard',
+      source: 'IIoT Gateway',
       acknowledged: false
     },
     {
       id: 'init-2',
       level: 'info',
-      message: 'All 3 machine telemetry channels initialised. Machine Alpha will use ThingSpeak (ESP32) in Live mode.',
+      message: 'Dashboard ready. Awaiting ThingSpeak connection — no live sensor data available yet.',
       timestamp: new Date().toLocaleTimeString(),
-      source: 'IIoT Gateway Manager',
+      source: 'IIoT Dashboard',
       acknowledged: false
     }
   ]);
@@ -67,9 +67,9 @@ export function useGcpData() {
   });
 
   const [machines, setMachines] = useState({
-    machine_alpha: { id: 'machine_alpha', name: MACHINE_METRICS.machine_alpha.name, description: MACHINE_METRICS.machine_alpha.desc, health: 98, temperature: 25.3, vibration: 0.006 },
-    machine_beta:  { id: 'machine_beta',  name: MACHINE_METRICS.machine_beta.name,  description: MACHINE_METRICS.machine_beta.desc,  health: 96, temperature: 24.1, vibration: 0.004 },
-    machine_gamma: { id: 'machine_gamma', name: MACHINE_METRICS.machine_gamma.name, description: MACHINE_METRICS.machine_gamma.desc, health: 95, temperature: 26.7, vibration: 0.007 }
+    machine_alpha: { id: 'machine_alpha', name: MACHINE_METRICS.machine_alpha.name, description: MACHINE_METRICS.machine_alpha.desc, health: null, temperature: null, vibration: null },
+    machine_beta:  { id: 'machine_beta',  name: MACHINE_METRICS.machine_beta.name,  description: MACHINE_METRICS.machine_beta.desc,  health: null, temperature: null, vibration: null },
+    machine_gamma: { id: 'machine_gamma', name: MACHINE_METRICS.machine_gamma.name, description: MACHINE_METRICS.machine_gamma.desc, health: null, temperature: null, vibration: null }
   });
 
   const timeCounter = useRef(0);

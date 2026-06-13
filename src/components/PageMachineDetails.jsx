@@ -14,9 +14,10 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
     );
   }
 
-  const hColor = machine.health < 40 ? '#dc2626' : machine.health < 75 ? '#d97706' : '#059669';
-  const hTint  = machine.health < 40 ? '#fee2e2' : machine.health < 75 ? '#fef3c7' : '#d1fae5';
-  const hLabel = machine.health < 40 ? 'danger' : machine.health < 75 ? 'warning' : 'success';
+  const h = machine.health;
+  const hColor = h == null ? '#cbd5e1' : h < 40 ? '#dc2626' : h < 75 ? '#d97706' : '#059669';
+  const hTint  = h == null ? '#f1f5f9' : h < 40 ? '#fee2e2' : h < 75 ? '#fef3c7' : '#d1fae5';
+  const hLabel = h == null ? '' : h < 40 ? 'danger' : h < 75 ? 'warning' : 'success';
 
   const mColor = (key, val) => {
     const cfg = METRIC_CONFIGS[key];
@@ -88,7 +89,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
         <div className={`stat-card ${hLabel}`} style={{ padding: '18px' }}>
           <span className="stat-label">Equipment Health</span>
           <div className="stat-value-container" style={{ marginTop: '6px' }}>
-            <span className="stat-value" style={{ fontSize: '2.4rem' }}>{machine.health}%</span>
+            <span className="stat-value" style={{ fontSize: '2.4rem', color: hColor }}>{h == null ? '--' : `${h}%`}</span>
             {machine.health < 40
               ? <ShieldAlert size={26} style={{ color: '#dc2626' }} />
               : machine.health < 75
@@ -98,23 +99,24 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
           </div>
           {/* Progress bar */}
           <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', marginTop: '10px' }}>
-            <div style={{ height: '100%', width: `${machine.health}%`, background: hColor, borderRadius: '3px', transition: 'width 0.5s ease' }} />
+            <div style={{ height: '100%', width: `${h ?? 0}%`, background: hColor, borderRadius: '3px', transition: 'width 0.5s ease' }} />
           </div>
           <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '6px' }}>
-            {machine.health < 40 ? 'Action required — fault detected' : machine.health < 75 ? 'Operating under stress' : 'All systems nominal'}
+            {h == null ? 'Awaiting sensor data' : h < 40 ? 'Action required — fault detected' : h < 75 ? 'Operating under stress' : 'All systems nominal'}
           </span>
         </div>
 
         {/* Temperature */}
-        {machine.temperature != null && (() => {
-          const c = mColor('temperature', machine.temperature);
-          const t = mTint('temperature', machine.temperature);
+        {(() => {
+          const val = machine.temperature;
+          const c = val != null ? mColor('temperature', val) : '#94a3b8';
+          const t = val != null ? mTint('temperature', val) : '#f1f5f9';
           return (
             <div className="stat-card" style={{ padding: '18px' }}>
               <span className="stat-label">Temperature</span>
               <div className="stat-value-container" style={{ marginTop: '6px' }}>
                 <span className="stat-value" style={{ fontSize: '2.4rem', color: c }}>
-                  {machine.temperature} °C
+                  {val != null ? `${val} °C` : '--'}
                 </span>
                 <Thermometer size={26} style={{ color: c }} />
               </div>
@@ -126,15 +128,16 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
         })()}
 
         {/* Vibration */}
-        {machine.vibration != null && (() => {
-          const c = mColor('vibration', machine.vibration);
-          const t = mTint('vibration', machine.vibration);
+        {(() => {
+          const val = machine.vibration;
+          const c = val != null ? mColor('vibration', val) : '#94a3b8';
+          const t = val != null ? mTint('vibration', val) : '#f1f5f9';
           return (
             <div className="stat-card" style={{ padding: '18px' }}>
               <span className="stat-label">Vibration</span>
               <div className="stat-value-container" style={{ marginTop: '6px' }}>
                 <span className="stat-value" style={{ fontSize: '2.4rem', color: c }}>
-                  {machine.vibration} Mag
+                  {val != null ? `${val} Mag` : '--'}
                 </span>
                 <Activity size={26} style={{ color: c }} />
               </div>
@@ -155,9 +158,8 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', overflowY: 'auto', paddingBottom: '8px' }}>
           {chartParams.map(({ id, label, unit, Icon }) => {
             const val = machine[id];
-            if (val == null) return null;
-            const c = mColor(id, val);
-            const t = mTint(id, val);
+            const c = val != null ? mColor(id, val) : '#94a3b8';
+            const t = val != null ? mTint(id, val) : '#f1f5f9';
             return (
               <div key={id} style={{
                 background: '#ffffff', borderRadius: '12px',
@@ -165,12 +167,12 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', color: '#64748b' }}>
-                    <Icon size={15} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <Icon size={15} style={{ color: c }} />
                     <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#0f172a' }}>{label}</span>
                   </div>
                   <span style={{ fontSize: '0.92rem', fontWeight: '800', color: c, background: t, padding: '3px 10px', borderRadius: '8px', fontFamily: "'Share Tech Mono', monospace" }}>
-                    {val} {unit}
+                    {val != null ? `${val} ${unit}` : '--'}
                   </span>
                 </div>
                 <div style={{ height: '110px', background: '#f8fafc', borderRadius: '8px', padding: '6px 2px' }}>

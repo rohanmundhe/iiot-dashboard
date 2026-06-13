@@ -21,18 +21,24 @@ export function PageParameterGrid({
   if (!cfg) return null;
 
   const sorted = [...machines]
-    .filter(m => m[activeMetric] != null)
-    .sort((a, b) => sortAsc ? a.health - b.health : b.health - a.health);
+    .sort((a, b) => {
+      if (a.health == null && b.health == null) return 0;
+      if (a.health == null) return 1;
+      if (b.health == null) return -1;
+      return sortAsc ? a.health - b.health : b.health - a.health;
+    });
 
-  const hColor = (h) => h < 40 ? '#dc2626' : h < 75 ? '#d97706' : '#059669';
-  const hTint  = (h) => h < 40 ? '#fee2e2' : h < 75 ? '#fef3c7' : '#d1fae5';
+  const hColor = (h) => h == null ? '#cbd5e1' : h < 40 ? '#dc2626' : h < 75 ? '#d97706' : '#059669';
+  const hTint  = (h) => h == null ? '#f1f5f9' : h < 40 ? '#fee2e2' : h < 75 ? '#fef3c7' : '#d1fae5';
 
   const mColor = (val) => {
+    if (val == null) return '#94a3b8';
     if (cfg.critMax && val >= cfg.critMax) return '#dc2626';
     if (cfg.warnMax && val >= cfg.warnMax) return '#d97706';
     return '#059669';
   };
   const mTint = (val) => {
+    if (val == null) return '#f1f5f9';
     if (cfg.critMax && val >= cfg.critMax) return '#fee2e2';
     if (cfg.warnMax && val >= cfg.warnMax) return '#fef3c7';
     return '#d1fae5';
@@ -84,8 +90,6 @@ export function PageParameterGrid({
               onClick={() => { setSelectedMachineId(m.id); setActivePage('machine'); }}
               className="parameter-grid-card"
             >
-              {/* Top stripe = health colour */}
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: hc, borderRadius: '14px 14px 0 0' }} />
 
               {/* Machine header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -93,7 +97,9 @@ export function PageParameterGrid({
                   <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a' }}>{m.name}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
                     <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Health:</span>
-                    <span style={{ fontSize: '0.72rem', fontWeight: '700', color: hc, background: ht, padding: '1px 7px', borderRadius: '8px' }}>{m.health}%</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '700', color: hc, background: ht, padding: '1px 7px', borderRadius: '8px' }}>
+                      {m.health == null ? '--' : `${m.health}%`}
+                    </span>
                   </div>
                 </div>
 
@@ -105,8 +111,8 @@ export function PageParameterGrid({
                   fontFamily: "'Share Tech Mono', monospace",
                   flexShrink: 0
                 }}>
-                  {val}
-                  <span style={{ fontSize: '0.6rem', fontFamily: 'var(--font-sans)', marginLeft: '3px', fontWeight: '600' }}>{cfg.unit}</span>
+                  {val == null ? '--' : val}
+                  {val != null && <span style={{ fontSize: '0.6rem', fontFamily: 'var(--font-sans)', marginLeft: '3px', fontWeight: '600' }}>{cfg.unit}</span>}
                 </div>
               </div>
 

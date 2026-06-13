@@ -134,6 +134,10 @@ body {
   background: var(--warning-tint);
   color: var(--color-warning);
 }
+.connection-badge.disconnected {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
 
 .clock-widget {
   display: flex;
@@ -170,21 +174,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  position: relative;
-  overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 4px; height: 100%;
-  background: var(--color-primary);
-  border-radius: 4px 0 0 4px;
-}
-.stat-card.success::before { background: var(--color-success); }
-.stat-card.warning::before { background: var(--color-warning); }
-.stat-card.danger::before  { background: var(--color-danger); }
 
 .stat-label {
   font-size: 0.68rem;
@@ -226,12 +217,7 @@ body {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
-.machine-overview-card .status-stripe {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 4px;
-  border-radius: 14px 14px 0 0;
-}
+.machine-overview-card .status-stripe { display: none; }
 
 /* ── Parameter Grid Card ───────────────────────────────────────────────────── */
 .parameter-grid-card {
@@ -292,14 +278,13 @@ body {
   flex-direction: column;
   padding: 10px 12px;
   background: var(--bg-inset);
-  border-left: 3px solid var(--border-color);
   border-radius: 8px;
   gap: 4px;
   animation: slide-in 0.22s ease;
 }
-.alert-item.info     { border-left-color: var(--color-primary);  background: var(--primary-tint); }
-.alert-item.warning  { border-left-color: var(--color-warning);  background: var(--warning-tint); }
-.alert-item.critical { border-left-color: var(--color-danger);   background: var(--danger-tint); }
+.alert-item.info     { background: var(--primary-tint); }
+.alert-item.warning  { background: var(--warning-tint); }
+.alert-item.critical { background: var(--danger-tint); }
 
 .alert-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.67rem; }
 .alert-timestamp { font-family: var(--font-mono); color: var(--color-text-muted); }
