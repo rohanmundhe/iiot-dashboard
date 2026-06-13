@@ -89,7 +89,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
         <div className={`stat-card ${hLabel}`} style={{ padding: '18px' }}>
           <span className="stat-label">Equipment Health</span>
           <div className="stat-value-container" style={{ marginTop: '6px' }}>
-            <span className="stat-value" style={{ fontSize: '2.4rem', color: hColor }}>{h == null ? '--' : `${h}%`}</span>
+            <span className="stat-value" style={{ fontSize: '2.4rem', color: hColor }}>{h == null ? '' : `${h}%`}</span>
             {machine.health < 40
               ? <ShieldAlert size={26} style={{ color: '#dc2626' }} />
               : machine.health < 75
@@ -116,7 +116,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
               <span className="stat-label">Temperature</span>
               <div className="stat-value-container" style={{ marginTop: '6px' }}>
                 <span className="stat-value" style={{ fontSize: '2.4rem', color: c }}>
-                  {val != null ? `${val} °C` : '--'}
+                  {val != null ? `${val} °C` : ''}
                 </span>
                 <Thermometer size={26} style={{ color: c }} />
               </div>
@@ -137,7 +137,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
               <span className="stat-label">Vibration</span>
               <div className="stat-value-container" style={{ marginTop: '6px' }}>
                 <span className="stat-value" style={{ fontSize: '2.4rem', color: c }}>
-                  {val != null ? `${val} Mag` : '--'}
+                  {val != null ? `${val} Mag` : ''}
                 </span>
                 <Activity size={26} style={{ color: c }} />
               </div>
@@ -172,7 +172,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
                     <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#0f172a' }}>{label}</span>
                   </div>
                   <span style={{ fontSize: '0.92rem', fontWeight: '800', color: c, background: t, padding: '3px 10px', borderRadius: '8px', fontFamily: "'Share Tech Mono', monospace" }}>
-                    {val != null ? `${val} ${unit}` : '--'}
+                    {val != null ? `${val} ${unit}` : ''}
                   </span>
                 </div>
                 <div style={{ height: '110px', background: '#f8fafc', borderRadius: '8px', padding: '6px 2px' }}>

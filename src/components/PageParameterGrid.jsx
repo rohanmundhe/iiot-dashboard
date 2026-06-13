@@ -98,7 +98,7 @@ export function PageParameterGrid({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
                     <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Health:</span>
                     <span style={{ fontSize: '0.72rem', fontWeight: '700', color: hc, background: ht, padding: '1px 7px', borderRadius: '8px' }}>
-                      {m.health == null ? '--' : `${m.health}%`}
+                      {m.health == null ? '' : `${m.health}%`}
                     </span>
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export function PageParameterGrid({
                   fontFamily: "'Share Tech Mono', monospace",
                   flexShrink: 0
                 }}>
-                  {val == null ? '--' : val}
+                  {val == null ? '' : val}
                   {val != null && <span style={{ fontSize: '0.6rem', fontFamily: 'var(--font-sans)', marginLeft: '3px', fontWeight: '600' }}>{cfg.unit}</span>}
                 </div>
               </div>
