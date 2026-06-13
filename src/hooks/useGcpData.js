@@ -33,7 +33,7 @@ const generateMetricValue = (key, t, isAnomaly, machineId) => {
 };
 
 export function useGcpData() {
-  const [connectionState, setConnectionState] = useState('mock');
+  const [connectionState, setConnectionState] = useState('live');
   const [anomalyActive, setAnomalyActive] = useState(false);
   const [alerts, setAlerts] = useState([
     {

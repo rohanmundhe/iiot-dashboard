@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Wifi,
-  Database,
-  Clock,
-  Flame
-} from 'lucide-react';
+import { Clock, Radio } from 'lucide-react';
 import { useGcpData } from './hooks/useGcpData';
 import Sidebar from './components/Sidebar';
 import PageOverview from './components/PageOverview';
@@ -14,28 +9,20 @@ import PageMachineDetails from './components/PageMachineDetails';
 export function App() {
   const {
     connectionState,
-    anomalyActive,
     alerts,
     machines,
     histories,
-    toggleAnomaly,
-    toggleConnection,
     acknowledgeAlert,
     clearAllAlerts
   } = useGcpData();
 
-  // Navigation state management: 'overview' | 'parameter' | 'machine'
   const [activePage, setActivePage] = useState('overview');
   const [activeMetric, setActiveMetric] = useState('temperature');
   const [selectedMachineId, setSelectedMachineId] = useState('machine_alpha');
-  
   const [systemTime, setSystemTime] = useState(new Date().toLocaleTimeString());
 
-  // Digital Live Clock ticking
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSystemTime(new Date().toLocaleTimeString());
-    }, 1000);
+    const timer = setInterval(() => setSystemTime(new Date().toLocaleTimeString()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -44,9 +31,8 @@ export function App() {
 
   return (
     <div className="app-workspace-layout">
-      {/* 1. Common Left Sidebar */}
-      <Sidebar 
-        activePage={activePage} 
+      <Sidebar
+        activePage={activePage}
         setActivePage={setActivePage}
         activeMetric={activeMetric}
         setActiveMetric={setActiveMetric}
@@ -54,70 +40,28 @@ export function App() {
         userName="Pushkar Shelar"
       />
 
-      {/* Right side area: Header + Pages */}
       <div className="main-content-area">
-        
-        {/* Global Operations Header */}
-        <header className="dashboard-header" style={{ flexShrink: 0 }}>
+        <header className="dashboard-header">
           <div className="header-title">
-            <div className={`pulse-indicator ${anomalyActive ? 'alerting' : ''}`} />
-            <h1 style={{ fontSize: '1.25rem' }}>IIoT Operations Command Center</h1>
+            <div className="pulse-indicator" />
+            <h1>IIoT Machine Health Monitor</h1>
           </div>
 
-          {/* Controls Panel */}
-          <div className="controls-bar">
-            {/* Connection Toggle */}
-            <button 
-              className={`control-btn ${connectionState === 'live' ? 'active' : ''}`}
-              onClick={toggleConnection}
-              title="Toggle Data Source Connection"
-            >
-              {connectionState === 'live' ? (
-                <>
-                  <Wifi size={14} />
-                  <span>ThingSpeak Live</span>
-                </>
-              ) : (
-                <>
-                  <Database size={14} />
-                  <span>Simulator Active</span>
-                </>
-              )}
-            </button>
-
-            {/* Anomaly Injector */}
-            <button
-              className={`control-btn danger ${anomalyActive ? 'active' : ''}`}
-              onClick={toggleAnomaly}
-              title="Test Warning Thresholds (45%, 30%, 10%)"
-            >
-              <Flame size={14} />
-              <span>{anomalyActive ? 'Stop Anomaly' : 'Test Alarms'}</span>
-            </button>
-
-            {/* Live Clock widget */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(10, 15, 30, 0.4)',
-              border: '1px solid rgba(38, 55, 96, 0.3)',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              color: '#38bdf8',
-              fontFamily: "'Orbitron', monospace",
-              fontSize: '0.75rem'
-            }}>
+          <div className="header-right">
+            <div className={`connection-badge ${connectionState === 'live' ? 'live' : 'sim'}`}>
+              <Radio size={11} />
+              <span>{connectionState === 'live' ? 'ThingSpeak Live' : 'Simulator'}</span>
+            </div>
+            <div className="clock-widget">
               <Clock size={12} />
               <span>{systemTime}</span>
             </div>
           </div>
         </header>
 
-        {/* 2. Main Page Render Area */}
-        <main style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <main className="page-area">
           {activePage === 'overview' && (
-            <PageOverview 
+            <PageOverview
               machines={machines}
               alerts={alerts}
               acknowledgeAlert={acknowledgeAlert}
@@ -126,9 +70,8 @@ export function App() {
               setActivePage={setActivePage}
             />
           )}
-
           {activePage === 'parameter' && (
-            <PageParameterGrid 
+            <PageParameterGrid
               machines={machines}
               activeMetric={activeMetric}
               histories={histories}
@@ -136,9 +79,8 @@ export function App() {
               setActivePage={setActivePage}
             />
           )}
-
           {activePage === 'machine' && (
-            <PageMachineDetails 
+            <PageMachineDetails
               machine={selectedMachine}
               history={selectedMachineHistory}
               setActivePage={setActivePage}

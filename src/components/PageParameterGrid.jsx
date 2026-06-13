@@ -1,182 +1,128 @@
-import React, { useState } from 'react';
-import { ArrowUpDown, Thermometer, Activity, Droplet } from 'lucide-react';
+import React from 'react';
+import { Thermometer, Activity, ArrowUpDown } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
 import { METRIC_CONFIGS } from '../hooks/useGcpData';
 
-export function PageParameterGrid({ 
-  machines = [], 
-  activeMetric = 'temperature', 
+const ICONS = {
+  temperature: <Thermometer size={15} />,
+  vibration:   <Activity size={15} />
+};
+
+export function PageParameterGrid({
+  machines = [],
+  activeMetric = 'temperature',
   histories = {},
   setSelectedMachineId,
   setActivePage
 }) {
-  const [sortOrder, setSortOrder] = useState('ascending'); // 'ascending' = lowest health first, 'descending' = highest health first
+  const [sortAsc, setSortAsc] = React.useState(true);
 
-  const metricConfig = METRIC_CONFIGS[activeMetric];
-  if (!metricConfig) return <div>Metric configuration not found.</div>;
+  const cfg = METRIC_CONFIGS[activeMetric];
+  if (!cfg) return null;
 
-  // Clone and sort machines by health
-  const sortedMachines = [...machines].sort((a, b) => {
-    if (sortOrder === 'ascending') {
-      return a[activeMetric] === undefined ? 1 : b[activeMetric] === undefined ? -1 : a.health - b.health;
-    } else {
-      return a[activeMetric] === undefined ? 1 : b[activeMetric] === undefined ? -1 : b.health - a.health;
-    }
-  });
+  const sorted = [...machines]
+    .filter(m => m[activeMetric] != null)
+    .sort((a, b) => sortAsc ? a.health - b.health : b.health - a.health);
 
-  const getMetricIcon = (metricId) => {
-    if (metricId === 'temperature') return <Thermometer size={16} />;
-    if (metricId === 'vibration')   return <Activity size={16} />;
-    return <Droplet size={16} />;
-  };
+  const getHealthColor = (h) =>
+    h < 40 ? 'var(--color-danger)' : h < 75 ? 'var(--color-warning)' : 'var(--color-success)';
 
-  const handleMachineClick = (machineId) => {
-    setSelectedMachineId(machineId);
-    setActivePage('machine');
+  const getMetricColor = (val) => {
+    if (!cfg) return 'var(--color-primary)';
+    if (cfg.critMax && val >= cfg.critMax) return 'var(--color-danger)';
+    if (cfg.warnMax && val >= cfg.warnMax) return 'var(--color-warning)';
+    return 'var(--color-success)';
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-      height: '100%',
-      minHeight: 0,
-      overflowY: 'auto'
-    }}>
-      {/* Header Bar with Sort Toggle */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', height: '100%', minHeight: 0, overflowY: 'auto' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)' }}>
-            {getMetricIcon(activeMetric)}
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', textTransform: 'uppercase', color: '#fff' }}>
-              {metricConfig.label} Telemetry Matrix
+            {ICONS[activeMetric]}
+            <h2 style={{ fontSize: '1.05rem', fontWeight: '700', textTransform: 'uppercase', color: '#fff', letterSpacing: '0.05em' }}>
+              {cfg.label} Telemetry
             </h2>
           </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            Comparing {metricConfig.label} metrics across all machines, ordered by equipment health.
-          </span>
+          <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '3px' }}>
+            {cfg.label} readings across all nodes — click a card to drill in
+          </p>
         </div>
 
-        {/* Sort order toggle button */}
         <button
-          onClick={() => setSortOrder(prev => prev === 'ascending' ? 'descending' : 'ascending')}
-          className="control-btn"
-          style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+          onClick={() => setSortAsc(p => !p)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: 'rgba(56, 189, 248, 0.07)',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            color: 'var(--color-text-muted)',
+            padding: '6px 14px', borderRadius: '8px',
+            fontSize: '0.72rem', fontWeight: '600', cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
         >
           <ArrowUpDown size={12} />
-          <span>Sorting: {sortOrder === 'ascending' ? 'Lowest Health First' : 'Highest Health First'}</span>
+          {sortAsc ? 'Lowest health first' : 'Highest health first'}
         </button>
       </div>
 
-      {/* Grid of Graphs */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '16px',
-        flex: 1,
-        minHeight: 0
-      }}>
-        {sortedMachines.map((m) => {
+      {/* Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+        {sorted.map((m) => {
           const val = m[activeMetric];
           const history = histories[m.id] || [];
-          
-          if (val === undefined) return null;
-
-          // Determine card border colors based on machine health status
-          const healthColor = m.health < 40 ? 'var(--color-danger)' : m.health < 75 ? 'var(--color-warning)' : 'var(--color-success)';
-
-          // Determine metric specific status color (e.g. is temp critical?)
-          let metricStatusColor = 'var(--color-primary)';
-          if (metricConfig.critMax && val >= metricConfig.critMax) metricStatusColor = 'var(--color-danger)';
-          else if (metricConfig.warnMax && val >= metricConfig.warnMax) metricStatusColor = 'var(--color-warning)';
-          else if (metricConfig.critMin && val <= metricConfig.critMin) metricStatusColor = 'var(--color-danger)';
-          else if (metricConfig.warnMin && val <= metricConfig.warnMin) metricStatusColor = 'var(--color-warning)';
-          else metricStatusColor = 'var(--color-success)';
+          const hc = getHealthColor(m.health);
+          const mc = getMetricColor(val);
 
           return (
             <div
               key={m.id}
-              onClick={() => handleMachineClick(m.id)}
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '10px',
-                padding: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '14px',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
+              onClick={() => { setSelectedMachineId(m.id); setActivePage('machine'); }}
               className="parameter-grid-card"
             >
-              {/* Highlight top border with machine health status */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '3px',
-                background: healthColor
-              }} />
+              {/* Top border stripe using health colour */}
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '3px', background: hc }} />
 
-              {/* Machine Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fff' }}>{m.name}</span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>Health Index: {m.health}%</span>
+              {/* Machine name + live value */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff' }}>{m.name}</span>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                    Health: <span style={{ color: hc, fontFamily: 'var(--font-mono)', fontWeight: '700' }}>{m.health}%</span>
+                  </div>
                 </div>
 
                 <div style={{
-                  background: 'rgba(10, 15, 30, 0.6)',
-                  border: `1px solid ${metricStatusColor}`,
-                  color: metricStatusColor,
+                  background: 'rgba(10,15,30,0.65)',
+                  border: `1px solid ${mc}`,
+                  color: mc,
                   fontFamily: 'var(--font-digital)',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.9rem',
-                  fontWeight: '700',
-                  boxShadow: `0 0 8px ${metricStatusColor}22`
+                  padding: '5px 10px', borderRadius: '8px',
+                  fontSize: '0.95rem', fontWeight: '700',
+                  boxShadow: `0 0 10px ${mc}22`,
+                  flexShrink: 0
                 }}>
-                  {val} {metricConfig.unit}
+                  {val} <span style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }}>{cfg.unit}</span>
                 </div>
               </div>
 
-              {/* Telemetry Graph container */}
-              <div style={{ 
-                height: '140px', 
-                background: 'rgba(5, 8, 17, 0.3)', 
-                borderRadius: '6px', 
+              {/* Chart */}
+              <div style={{
+                height: '130px',
+                background: 'rgba(5, 8, 17, 0.35)',
+                borderRadius: '8px',
                 padding: '8px 4px',
-                border: '1px solid rgba(38, 55, 96, 0.1)'
+                border: '1px solid rgba(38, 55, 96, 0.15)'
               }}>
-                <TelemetryChart 
-                  data={history} 
-                  dataKey={activeMetric} 
-                  strokeColor={metricStatusColor}
-                  unit={metricConfig.unit}
-                />
+                <TelemetryChart data={history} dataKey={activeMetric} strokeColor={mc} unit={cfg.unit} />
               </div>
 
-              {/* Bottom statistics and metadata */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '0.65rem',
-                color: 'var(--color-text-muted)',
-                fontFamily: 'var(--font-mono)'
-              }}>
-                <span>Optimal: {metricConfig.optMin} - {metricConfig.optMax || metricConfig.optMin * 1.5} {metricConfig.unit}</span>
-                <span style={{ color: 'var(--color-primary)' }}>Analyze Node →</span>
+              {/* Range info */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                <span>Normal ≤ {cfg.optMax} {cfg.unit}</span>
+                <span style={{ color: 'var(--color-primary)' }}>View Details →</span>
               </div>
             </div>
           );
