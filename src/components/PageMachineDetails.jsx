@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Thermometer, Activity, Droplet, Heart, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Thermometer, Activity, Heart, ShieldAlert, AlertTriangle } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
 import { METRIC_CONFIGS } from '../hooks/useGcpData';
 
@@ -8,39 +8,25 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
         No machine selected. Return to the{' '}
-        <span
-          style={{ color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => setActivePage('overview')}
-        >
-          Overview
-        </span>{' '}
-        page.
+        <span style={{ color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => setActivePage('overview')}>Overview</span> page.
       </div>
     );
   }
 
-  const healthColor = machine.health < 40
-    ? 'var(--color-danger)'
-    : machine.health < 75
-      ? 'var(--color-warning)'
-      : 'var(--color-success)';
+  const healthColor = machine.health < 40 ? 'var(--color-danger)' : machine.health < 75 ? 'var(--color-warning)' : 'var(--color-success)';
 
   const getStatusColor = (key, val) => {
     const cfg = METRIC_CONFIGS[key];
     if (!cfg || val == null) return 'var(--color-text-main)';
     if (cfg.critMax && val >= cfg.critMax) return 'var(--color-danger)';
     if (cfg.warnMax && val >= cfg.warnMax) return 'var(--color-warning)';
-    if (cfg.critMin && val <= cfg.critMin) return 'var(--color-danger)';
-    if (cfg.warnMin && val <= cfg.warnMin) return 'var(--color-warning)';
     return 'var(--color-success)';
   };
 
-  const isLive = machine.source === 'thingspeak';
-
   const chartParams = [
     { id: 'temperature', label: 'Temperature (°C)', unit: '°C' },
-    { id: 'humidity',    label: 'Humidity (%)',     unit: '%' },
-    { id: 'vibration',  label: 'Vibration (Mag)',  unit: 'Mag' }
+    { id: 'vibration',   label: 'Vibration (Mag)',  unit: 'Mag' }
   ];
 
   return (
@@ -52,13 +38,9 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
           <button
             onClick={() => setActivePage('overview')}
             style={{
-              background: 'rgba(56, 189, 248, 0.08)',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              color: 'var(--color-primary)',
-              width: '32px', height: '32px',
-              borderRadius: '8px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', transition: 'all 0.15s ease'
+              background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.3)',
+              color: 'var(--color-primary)', width: '32px', height: '32px', borderRadius: '8px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
             }}
             className="back-arrow-btn"
           >
@@ -75,19 +57,15 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
         </div>
 
         <span style={{
-          fontFamily: "'Share Tech Mono', monospace",
-          fontSize: '0.7rem',
-          color: 'var(--color-text-dim)',
-          background: 'rgba(10, 15, 30, 0.4)',
-          border: '1px solid var(--border-color)',
-          padding: '4px 8px',
-          borderRadius: '4px'
+          fontFamily: "'Share Tech Mono', monospace", fontSize: '0.7rem', color: 'var(--color-text-dim)',
+          background: 'rgba(10, 15, 30, 0.4)', border: '1px solid var(--border-color)',
+          padding: '4px 8px', borderRadius: '4px'
         }}>
-          {isLive ? 'THINGSPEAK LIVE NODE' : 'SIMULATOR NODE'}: {machine.id.toUpperCase()}
+          {machine.source === 'thingspeak' ? 'THINGSPEAK LIVE NODE' : 'SIMULATOR NODE'}: {machine.id.toUpperCase()}
         </span>
       </div>
 
-      {/* Summary Cards — Health + Temp + Humidity + Vibration */}
+      {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
 
         {/* Health */}
@@ -120,21 +98,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
             <Thermometer size={24} style={{ color: 'var(--color-primary)' }} />
           </div>
           <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Optimal: {METRIC_CONFIGS.temperature.optMin}°C – {METRIC_CONFIGS.temperature.optMax}°C
-          </div>
-        </div>
-
-        {/* Humidity */}
-        <div className="stat-card" style={{ padding: '16px' }}>
-          <span className="stat-label">Humidity</span>
-          <div className="stat-value-container" style={{ marginTop: '4px' }}>
-            <span className="stat-value" style={{ fontSize: '2.2rem', color: getStatusColor('humidity', machine.humidity) }}>
-              {machine.humidity != null ? machine.humidity : '--'} %
-            </span>
-            <Droplet size={24} style={{ color: 'var(--color-primary)' }} />
-          </div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Optimal: {METRIC_CONFIGS.humidity.optMin}% – {METRIC_CONFIGS.humidity.optMax}%
+            Optimal: {METRIC_CONFIGS.temperature.optMin}°C – {METRIC_CONFIGS.temperature.optMax}°C &nbsp;|&nbsp; Critical: ≥{METRIC_CONFIGS.temperature.critMax}°C
           </div>
         </div>
 
@@ -148,7 +112,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
             <Activity size={24} style={{ color: 'var(--color-primary)' }} />
           </div>
           <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
-            Critical: ≥ {METRIC_CONFIGS.vibration.critMax} Mag
+            Normal: ≤{METRIC_CONFIGS.vibration.optMax} Mag &nbsp;|&nbsp; Critical: ≥{METRIC_CONFIGS.vibration.critMax} Mag
           </div>
         </div>
       </div>
@@ -158,20 +122,15 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
         <span style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-dim)', letterSpacing: '0.05em' }}>
           Telemetry Graph Matrix
         </span>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', overflowY: 'auto', paddingBottom: '12px' }}>
           {chartParams.map((param) => {
             const val = machine[param.id];
             if (val == null) return null;
             const color = getStatusColor(param.id, val);
-
             return (
               <div key={param.id} style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '10px',
-                padding: '12px',
-                display: 'flex', flexDirection: 'column', gap: '8px'
+                background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+                borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#fff' }}>{param.label}</span>

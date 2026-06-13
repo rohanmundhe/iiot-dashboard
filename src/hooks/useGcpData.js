@@ -2,19 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
-// ── Metric configs (real ESP32 sensor ranges from code.c) ─────────────────────
+// Only the 3 metrics the ESP32 actually measures and uses for health
 export const METRIC_CONFIGS = {
   temperature: { label: 'Temperature', unit: '°C',  icon: 'thermometer', optMin: 20, optMax: 30, warnMax: 35, critMax: 40 },
-  humidity:    { label: 'Humidity',    unit: '%',   icon: 'droplet',     optMin: 30, optMax: 60, warnMax: 75, critMax: 85 },
   vibration:   { label: 'Vibration',  unit: 'Mag', icon: 'activity',    optMin: 0,  optMax: 0.01, warnMax: 0.05, critMax: 0.15 }
 };
-
-// Same config object re-exported for ThingSpeak machines (kept for back-compat with getMetricConfigs)
-export const THINGSPEAK_METRIC_CONFIGS = METRIC_CONFIGS;
-
-export function getMetricConfigs() {
-  return METRIC_CONFIGS;
-}
 
 export const MACHINE_METRICS = {
   machine_alpha: { name: 'Machine Alpha (LAB 1)', desc: 'ESP32 + DHT22 + MPU6050' },
@@ -22,7 +14,6 @@ export const MACHINE_METRICS = {
   machine_gamma: { name: 'Machine Gamma (LAB 3)', desc: 'Simulated Node' }
 };
 
-// Simulates temperature, humidity, vibration only
 const generateMetricValue = (key, t, isAnomaly, machineId) => {
   const phase = machineId === 'machine_alpha' ? 0 : machineId === 'machine_beta' ? 2 : 4;
 
@@ -30,12 +21,6 @@ const generateMetricValue = (key, t, isAnomaly, machineId) => {
     let val = 25 + Math.sin(t + phase) * 4 + (Math.random() - 0.5) * 1.5;
     if (isAnomaly) val = 38 + Math.random() * 5;
     return parseFloat(Math.max(15, val).toFixed(1));
-  }
-
-  if (key === 'humidity') {
-    let val = 50 + Math.sin(t * 0.7 + phase) * 10 + (Math.random() - 0.5) * 3;
-    if (isAnomaly) val = 72 + Math.random() * 8;
-    return parseFloat(Math.min(100, Math.max(20, val)).toFixed(1));
   }
 
   if (key === 'vibration') {
@@ -48,7 +33,7 @@ const generateMetricValue = (key, t, isAnomaly, machineId) => {
 };
 
 export function useGcpData() {
-  const [connectionState, setConnectionState] = useState('mock'); // 'mock' | 'live'
+  const [connectionState, setConnectionState] = useState('mock');
   const [anomalyActive, setAnomalyActive] = useState(false);
   const [alerts, setAlerts] = useState([
     {
@@ -82,37 +67,20 @@ export function useGcpData() {
   });
 
   const [machines, setMachines] = useState({
-    machine_alpha: {
-      id: 'machine_alpha',
-      name: MACHINE_METRICS.machine_alpha.name,
-      description: MACHINE_METRICS.machine_alpha.desc,
-      health: 98, temperature: 25.3, humidity: 52.0, vibration: 0.006
-    },
-    machine_beta: {
-      id: 'machine_beta',
-      name: MACHINE_METRICS.machine_beta.name,
-      description: MACHINE_METRICS.machine_beta.desc,
-      health: 96, temperature: 24.1, humidity: 49.0, vibration: 0.004
-    },
-    machine_gamma: {
-      id: 'machine_gamma',
-      name: MACHINE_METRICS.machine_gamma.name,
-      description: MACHINE_METRICS.machine_gamma.desc,
-      health: 95, temperature: 26.7, humidity: 55.0, vibration: 0.007
-    }
+    machine_alpha: { id: 'machine_alpha', name: MACHINE_METRICS.machine_alpha.name, description: MACHINE_METRICS.machine_alpha.desc, health: 98, temperature: 25.3, vibration: 0.006 },
+    machine_beta:  { id: 'machine_beta',  name: MACHINE_METRICS.machine_beta.name,  description: MACHINE_METRICS.machine_beta.desc,  health: 96, temperature: 24.1, vibration: 0.004 },
+    machine_gamma: { id: 'machine_gamma', name: MACHINE_METRICS.machine_gamma.name, description: MACHINE_METRICS.machine_gamma.desc, health: 95, temperature: 26.7, vibration: 0.007 }
   });
 
   const timeCounter = useRef(0);
 
   const triggerAlert = useCallback((level, message, source = 'System') => {
-    const newAlert = {
+    setAlerts(prev => [{
       id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       level, message,
       timestamp: new Date().toLocaleTimeString(),
-      source,
-      acknowledged: false
-    };
-    setAlerts(prev => [newAlert, ...prev].slice(0, 100));
+      source, acknowledged: false
+    }, ...prev].slice(0, 100));
   }, []);
 
   const acknowledgeAlert = useCallback((id) => {
@@ -140,17 +108,15 @@ export function useGcpData() {
 
       setMachines(prevMachines => {
         const updated = {};
-
         Object.keys(prevMachines).forEach(id => {
           const m = prevMachines[id];
           const temp = generateMetricValue('temperature', t, anomalyActive, id);
-          const hum  = generateMetricValue('humidity',    t, anomalyActive, id);
           const vib  = generateMetricValue('vibration',   t, anomalyActive, id);
 
           let health = m.health;
           if (anomalyActive) {
-            const decayRates = { machine_alpha: 2.8, machine_beta: 3.5, machine_gamma: 2.2 };
-            health = Math.max(8, health - decayRates[id] - Math.random() * 0.5);
+            const decay = { machine_alpha: 2.8, machine_beta: 3.5, machine_gamma: 2.2 };
+            health = Math.max(8, health - decay[id] - Math.random() * 0.5);
           } else {
             health = Math.min(95 + Math.floor(Math.sin(t * 0.5) * 3), health + 1.5);
           }
@@ -168,21 +134,17 @@ export function useGcpData() {
             }
           });
 
-          if (temp >= METRIC_CONFIGS.temperature.critMax) {
+          if (temp >= METRIC_CONFIGS.temperature.critMax)
             triggerAlert('critical', `${m.name} Overheating! Temperature reached ${temp}°C.`, `${id}_thermal_node`);
-          }
-          if (vib >= METRIC_CONFIGS.vibration.critMax) {
+          if (vib >= METRIC_CONFIGS.vibration.critMax)
             triggerAlert('critical', `${m.name} High Vibration: ${vib} Mag.`, `${id}_vibration_sensor`);
-          }
 
-          updated[id] = { ...m, health, temperature: temp, humidity: hum, vibration: vib };
-
+          updated[id] = { ...m, health, temperature: temp, vibration: vib };
           setHistories(prev => ({
             ...prev,
-            [id]: [...prev[id], { timestamp, temperature: temp, humidity: hum, vibration: vib }].slice(-25)
+            [id]: [...prev[id], { timestamp, temperature: temp, vibration: vib }].slice(-25)
           }));
         });
-
         return updated;
       });
     }, 1500);
@@ -190,7 +152,7 @@ export function useGcpData() {
     return () => clearInterval(interval);
   }, [connectionState, anomalyActive, triggerAlert]);
 
-  // ── LIVE mode: SSE stream from backend ────────────────────────────────────
+  // ── LIVE mode ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (connectionState !== 'live') return;
 
@@ -203,48 +165,39 @@ export function useGcpData() {
     es.addEventListener('telemetry', (e) => {
       try {
         const { machines: updatedMachines, newAlerts, timestamp } = JSON.parse(e.data);
-
         setMachines(prev => {
           const next = { ...prev };
           updatedMachines.forEach(m => { next[m.id] = m; });
           return next;
         });
-
         setHistories(prev => {
           const next = { ...prev };
           updatedMachines.forEach(m => {
-            const entry = {
+            next[m.id] = [...(next[m.id] || []), {
               timestamp: new Date(timestamp).toLocaleTimeString(),
               temperature: m.temperature,
-              humidity:    m.humidity,
               vibration:   m.vibration
-            };
-            next[m.id] = [...(next[m.id] || []), entry].slice(-25);
+            }].slice(-25);
           });
           return next;
         });
-
-        if (newAlerts?.length > 0) {
+        if (newAlerts?.length > 0)
           setAlerts(prev => [...newAlerts, ...prev].slice(0, 100));
-        }
       } catch (_) {}
     });
 
     es.addEventListener('new_alert', (e) => {
       try { setAlerts(prev => [JSON.parse(e.data), ...prev].slice(0, 100)); } catch (_) {}
     });
-
     es.addEventListener('alert_update', (e) => {
       try {
         const { id, acknowledged } = JSON.parse(e.data);
         setAlerts(prev => prev.map(a => a.id === id ? { ...a, acknowledged } : a));
       } catch (_) {}
     });
-
     es.addEventListener('alerts_cleared', () => {
       setAlerts(prev => prev.map(a => ({ ...a, acknowledged: true })));
     });
-
     es.onerror = () => {
       triggerAlert('warning', 'Lost connection to backend. Retrying...', 'SSE Manager');
     };
@@ -290,15 +243,9 @@ export function useGcpData() {
   }, [triggerAlert]);
 
   return {
-    connectionState,
-    anomalyActive,
-    alerts,
+    connectionState, anomalyActive, alerts,
     machines: Object.values(machines),
     histories,
-    toggleAnomaly,
-    toggleConnection,
-    acknowledgeAlert,
-    clearAllAlerts,
-    triggerAlert
+    toggleAnomaly, toggleConnection, acknowledgeAlert, clearAllAlerts, triggerAlert
   };
 }

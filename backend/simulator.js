@@ -7,7 +7,6 @@
 
 const METRIC_CONFIGS = {
   temperature: { label: 'Temperature', unit: '°C',  optMin: 20, optMax: 30, warnMax: 35, critMax: 40 },
-  humidity:    { label: 'Humidity',    unit: '%',   optMin: 30, optMax: 60, warnMax: 75, critMax: 85 },
   vibration:   { label: 'Vibration',  unit: 'Mag', optMin: 0,  optMax: 0.01, warnMax: 0.05, critMax: 0.15 }
 };
 
@@ -32,12 +31,6 @@ function generateMetricValue(key, t, isAnomaly, machineId) {
     return parseFloat(Math.max(15, val).toFixed(1));
   }
 
-  if (key === 'humidity') {
-    let val = 50 + Math.sin(t * 0.7 + phase) * 10 + (Math.random() - 0.5) * 3;
-    if (isAnomaly) val = 72 + Math.random() * 8;
-    return parseFloat(Math.min(100, Math.max(20, val)).toFixed(1));
-  }
-
   if (key === 'vibration') {
     let val = 0.005 + Math.abs(Math.sin(t * 1.3 + phase)) * 0.008 + Math.random() * 0.003;
     if (isAnomaly) val = 0.12 + Math.random() * 0.15;
@@ -55,9 +48,9 @@ const state = {
   anomalyActive: false,
   timeCounter: 0,
   machines: {
-    machine_alpha: { id: 'machine_alpha', ...MACHINE_DEFS.machine_alpha, health: 98, temperature: 25.3, humidity: 52.0, vibration: 0.006 },
-    machine_beta:  { id: 'machine_beta',  ...MACHINE_DEFS.machine_beta,  health: 96, temperature: 24.1, humidity: 49.0, vibration: 0.004 },
-    machine_gamma: { id: 'machine_gamma', ...MACHINE_DEFS.machine_gamma, health: 95, temperature: 26.7, humidity: 55.0, vibration: 0.007 }
+    machine_alpha: { id: 'machine_alpha', ...MACHINE_DEFS.machine_alpha, health: 98, temperature: 25.3, vibration: 0.006 },
+    machine_beta:  { id: 'machine_beta',  ...MACHINE_DEFS.machine_beta,  health: 96, temperature: 24.1, vibration: 0.004 },
+    machine_gamma: { id: 'machine_gamma', ...MACHINE_DEFS.machine_gamma, health: 95, temperature: 26.7, vibration: 0.007 }
   },
   // tracks which health thresholds have fired to avoid spam
   triggeredThresholds: {
@@ -90,7 +83,6 @@ function tick() {
     const m = state.machines[id];
 
     const temp = generateMetricValue('temperature', t, state.anomalyActive, id);
-    const hum  = generateMetricValue('humidity',    t, state.anomalyActive, id);
     const vib  = generateMetricValue('vibration',   t, state.anomalyActive, id);
 
     let health = m.health;
@@ -122,7 +114,7 @@ function tick() {
       newAlerts.push(mkAlert('critical', `${m.name} High Vibration: ${vib} Mag`, `${id}_vibration_sensor`));
     }
 
-    state.machines[id] = { ...m, health, temperature: temp, humidity: hum, vibration: vib };
+    state.machines[id] = { ...m, health, temperature: temp, vibration: vib };
   });
 
   return newAlerts;

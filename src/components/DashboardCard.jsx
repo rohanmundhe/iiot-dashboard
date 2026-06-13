@@ -8,9 +8,8 @@ export function DashboardCard({
   children
 }) {
   const tabs = [
-    { id: 'dashboard',    label: 'Dashboard' },
-    { id: 'temperature',  label: 'Temperature' },
-    { id: 'humidity',     label: 'Humidity' },
+    { id: 'dashboard',   label: 'Dashboard' },
+    { id: 'temperature', label: 'Temperature' },
     { id: 'vibration',   label: 'Vibration' }
   ];
 

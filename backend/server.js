@@ -121,7 +121,6 @@ if (tsConfigured) {
         ...m,
         source:      'thingspeak',
         temperature: reading.temperature != null ? parseFloat(reading.temperature.toFixed(1)) : m.temperature,
-        humidity:    reading.humidity    != null ? parseFloat(reading.humidity.toFixed(1))    : m.humidity,
         vibration:   reading.vibration   != null ? parseFloat(reading.vibration.toFixed(4))   : m.vibration,
         health:      reading.health      != null ? parseFloat(reading.health.toFixed(1))       : m.health,
         lastThingSpeakUpdate: reading.timestamp

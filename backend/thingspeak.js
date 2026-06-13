@@ -3,9 +3,8 @@
  *
  * Expected channel field mapping (set in your ESP32 code):
  *   field1 → avgTemp      (°C)
- *   field2 → avgHumidity  (%)
- *   field3 → avgVibration (magnitude delta from baseline)
- *   field4 → equipmentHealth (%)
+ *   field2 → avgVibration (magnitude delta from MPU6050 baseline)
+ *   field3 → equipmentHealth (%)
  *
  * Set THINGSPEAK_CHANNEL_ID and THINGSPEAK_READ_API_KEY in backend/.env
  * to enable live data. Falls back to simulator when not set.
@@ -35,9 +34,8 @@ function fetchLatestReading() {
             if (json.error) return reject(new Error(json.error));
             resolve({
               temperature: json.field1 != null ? parseFloat(json.field1) : null,
-              humidity:    json.field2 != null ? parseFloat(json.field2) : null,
-              vibration:   json.field3 != null ? parseFloat(json.field3) : null,
-              health:      json.field4 != null ? parseFloat(json.field4) : null,
+              vibration:   json.field2 != null ? parseFloat(json.field2) : null,
+              health:      json.field3 != null ? parseFloat(json.field3) : null,
               timestamp:   json.created_at || new Date().toISOString()
             });
           } catch (e) {
