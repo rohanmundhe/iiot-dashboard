@@ -55,7 +55,7 @@ export function PageParameterGrid({
             <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a' }}>{cfg.label} Telemetry</h2>
           </div>
           <p style={{ fontSize: '0.73rem', color: '#64748b', marginTop: '3px' }}>
-            {cfg.label} readings across all nodes — click a card to drill in
+            {cfg.label} readings across all nodes. Click a card to drill in.
           </p>
         </div>
 

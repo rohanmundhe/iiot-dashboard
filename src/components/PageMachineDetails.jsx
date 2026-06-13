@@ -102,7 +102,7 @@ export function PageMachineDetails({ machine, history = [], setActivePage }) {
             <div style={{ height: '100%', width: `${h ?? 0}%`, background: hColor, borderRadius: '3px', transition: 'width 0.5s ease' }} />
           </div>
           <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '6px' }}>
-            {h == null ? 'Awaiting sensor data' : h < 40 ? 'Action required — fault detected' : h < 75 ? 'Operating under stress' : 'All systems nominal'}
+            {h == null ? 'Awaiting sensor data' : h < 40 ? 'Action required. Fault detected.' : h < 75 ? 'Operating under stress' : 'All systems nominal'}
           </span>
         </div>
 

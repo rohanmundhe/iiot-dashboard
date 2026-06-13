@@ -11,7 +11,7 @@
   --bg-inset:      #f1f5f9;
   --bg-sidebar:    #ffffff;
 
-  /* Semantic — keep same var names so components work */
+  /* Semantic: keep same var names so components work */
   --color-primary:    #0ea5e9;
   --color-success:    #059669;
   --color-warning:    #d97706;

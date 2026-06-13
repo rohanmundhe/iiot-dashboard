@@ -66,14 +66,14 @@ function checkThingSpeakAlerts(reading) {
 
   const { temperature, vibration, health } = reading;
 
-  // Temperature thresholds (°C) — from code.c getTempHealth()
+  // Temperature thresholds (°C) : from code.c getTempHealth()
   if (temperature != null && temperature >= 40) {
     alerts.push(mk('critical', `Machine Alpha Overheating! Temp=${temperature.toFixed(1)}°C (Critical ≥40°C)`));
   } else if (temperature != null && temperature >= 35) {
     alerts.push(mk('warning', `Machine Alpha Temperature Warning: ${temperature.toFixed(1)}°C (Warn ≥35°C)`));
   }
 
-  // Vibration thresholds — from code.c CRITICAL_THRESHOLD / WARNING_THRESHOLD
+  // Vibration thresholds : from code.c CRITICAL_THRESHOLD / WARNING_THRESHOLD
   if (vibration != null && vibration >= 0.15) {
     alerts.push(mk('critical', `Machine Alpha High Vibration: ${vibration.toFixed(4)} Mag (Critical ≥0.15)`));
   } else if (vibration != null && vibration >= 0.05) {
@@ -109,7 +109,7 @@ setInterval(() => {
   });
 }, 1500);
 
-// ── ThingSpeak poll loop (16 s — respects free tier rate limit) ───────────────
+// ── ThingSpeak poll loop (16 s : respects free tier rate limit) ───────────────
 if (tsConfigured) {
   const pollThingSpeak = async () => {
     try {
@@ -149,13 +149,13 @@ if (tsConfigured) {
   setInterval(pollThingSpeak, 16000);
   console.log(`[ThingSpeak] Polling channel ${CHANNEL_ID} every 16 s`);
 } else {
-  console.log('[ThingSpeak] Not configured — using simulator for all machines.');
+  console.log('[ThingSpeak] Not configured : using simulator for all machines.');
   console.log('[ThingSpeak] Set THINGSPEAK_CHANNEL_ID and THINGSPEAK_READ_API_KEY in backend/.env to enable.');
 }
 
 // ── REST Routes ───────────────────────────────────────────────────────────────
 
-// GET /api/machines  — snapshot of all machines
+// GET /api/machines  : snapshot of all machines
 app.get('/api/machines', (_req, res) => {
   res.json(getMachinesArray());
 });
@@ -181,14 +181,14 @@ app.post('/api/alerts/:id/acknowledge', (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /api/alerts/clear  — mark all acknowledged
+// POST /api/alerts/clear  : mark all acknowledged
 app.post('/api/alerts/clear', (_req, res) => {
   alertLog.forEach(a => { a.acknowledged = true; });
   broadcastSSE('alerts_cleared', {});
   res.json({ ok: true });
 });
 
-// POST /api/simulate/anomaly  — body: { active: true | false }
+// POST /api/simulate/anomaly  : body: { active: true | false }
 app.post('/api/simulate/anomaly', (req, res) => {
   const active = Boolean(req.body.active);
   setAnomaly(active);
@@ -211,7 +211,7 @@ app.post('/api/simulate/anomaly', (req, res) => {
   res.json({ ok: true, anomalyActive: active });
 });
 
-// GET /api/thingspeak/status — config and connection status
+// GET /api/thingspeak/status : config and connection status
 app.get('/api/thingspeak/status', (_req, res) => {
   res.json({
     configured: tsConfigured,
@@ -221,7 +221,7 @@ app.get('/api/thingspeak/status', (_req, res) => {
   });
 });
 
-// GET /api/status  — health check
+// GET /api/status  : health check
 app.get('/api/status', (_req, res) => {
   res.json({
     status: 'ok',

@@ -41,7 +41,7 @@ function generateMetricValue(key, t, isAnomaly, machineId) {
 }
 
 /**
- * State container — the simulator owns this and mutates it each tick.
+ * State container : the simulator owns this and mutates it each tick.
  * server.js reads from here and broadcasts to SSE clients.
  */
 const state = {

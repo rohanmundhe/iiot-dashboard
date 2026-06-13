@@ -47,7 +47,7 @@ export function useGcpData() {
     {
       id: 'init-2',
       level: 'info',
-      message: 'Dashboard ready. Awaiting ThingSpeak connection — no live sensor data available yet.',
+      message: 'Dashboard ready. Awaiting ThingSpeak connection. No live sensor data available yet.',
       timestamp: new Date().toLocaleTimeString(),
       source: 'IIoT Dashboard',
       acknowledged: false
@@ -235,8 +235,8 @@ export function useGcpData() {
       const next = prev === 'mock' ? 'live' : 'mock';
       triggerAlert('info',
         next === 'live'
-          ? 'Switched to Live mode — ThingSpeak SSE active. Machine Alpha → ESP32 sensor data.'
-          : 'Switched to Simulator mode — local mock data active.',
+          ? 'Switched to Live mode. ThingSpeak SSE active. Machine Alpha uses ESP32 sensor data.'
+          : 'Switched to Simulator mode. Local mock data active.',
         'Gateway Manager');
       return next;
     });
